@@ -198,6 +198,7 @@
           <input>${project.build.directory}/app/</input>
           <mainJar>${project.artifactId}-${project.version}.jar</mainJar>
           <destination>${project.build.directory}/jpackage</destination>
+          <icon>${project.basedir}/images/icon.ico</icon>
           <javaOptions>
             <option>-Dfile.encoding=UTF-8</option>
             <!-- DesktopWallpaperService calls restricted FFM methods. -->

@@ -16,6 +16,7 @@ import com.sosuisha.service.RandomImagePicker;
 import atlantafx.base.theme.PrimerLight;
 
 import javafx.application.Application;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 /**
@@ -26,6 +27,7 @@ public class App extends Application {
     static final Class<? extends View> FIRST_VIEW = MonitorsView.class;
     /** System property that overrides the path of the settings file. */
     static final String SETTINGS_FILE_PROPERTY = "sss.settings.file";
+    static final String ICON_RESOURCE = "sss-wallpaper.png";
 
     /**
      * Composition root that wires the dependencies and shows the first window.
@@ -37,6 +39,7 @@ public class App extends Application {
     public void start(Stage stage) {
         Objects.requireNonNull(stage, "stage must not be null");
         setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
+        stage.getIcons().add(new Image(App.class.getResource(ICON_RESOURCE).toExternalForm()));
         var windowManager = new WindowManager();
         var monitorsViewModel = createMonitorsViewModel();
         windowManager.registerView(new MonitorsView(monitorsViewModel));
