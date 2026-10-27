@@ -1,7 +1,6 @@
 package com.sosuisha.presentation.screens.monitors;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
@@ -110,14 +109,9 @@ public class MonitorsView implements View {
                 .build(),
             LabelBuilder.create().text(String.valueOf(number)).style(LABEL_STYLE).build(),
             LabelBuilder.create()
-                .id("folder")
+                .id("sourceName")
                 .style(LABEL_STYLE)
-                .textPropertyApply(
-                    text -> text.bind(
-                        viewModel.folderProperty(monitor)
-                            .map(folder -> folder.map(MonitorsView::folderName).orElse(""))
-                    )
-                )
+                .textPropertyApply(text -> text.bind(viewModel.sourceNameProperty(monitor)))
                 .alignmentInStackPane(Pos.TOP_CENTER)
                 .build(),
             // Stacked, because a frame of a portrait monitor is too narrow
@@ -171,12 +165,6 @@ public class MonitorsView implements View {
                     .orElse(null)
             )
         );
-    }
-
-    private static String folderName(Path folder) {
-        var name = folder.getFileName();
-        // A drive root such as C:\ has no file name.
-        return name == null ? folder.toString() : name.toString();
     }
 
     private static void acceptFiles(DragEvent event) {

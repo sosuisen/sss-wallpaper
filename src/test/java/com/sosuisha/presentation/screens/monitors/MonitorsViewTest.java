@@ -105,9 +105,9 @@ class MonitorsViewTest {
     void the_name_of_the_registered_folder_is_shown_in_the_frame(FxRobot robot) {
         var leftFrame = robot.lookup("#monitorFrames").queryAs(Pane.class).getChildren().getFirst();
 
-        var folder = robot.from(leftFrame).lookup("#folder").queryLabeled();
+        var sourceName = robot.from(leftFrame).lookup("#sourceName").queryLabeled();
 
-        assertEquals("cats", folder.getText());
+        assertEquals("cats", sourceName.getText());
     }
 
     @Test

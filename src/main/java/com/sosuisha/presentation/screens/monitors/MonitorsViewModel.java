@@ -20,10 +20,12 @@ import com.sosuisha.domain.service.ImageComposer;
 import com.sosuisha.domain.service.ImagePicker;
 import com.sosuisha.domain.service.WallpaperService;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -51,7 +53,7 @@ public class MonitorsViewModel {
     private final Map<String, ReadOnlyObjectWrapper<Optional<Path>>> folders = new HashMap<>();
     private final Map<String, ReadOnlyObjectWrapper<Optional<Path>>> wallpapers =
         new HashMap<>();
-    private final Map<String, Path> sourceImages = new HashMap<>();
+    private final Map<String, ObjectProperty<Optional<Path>>> sourceImages = new HashMap<>();
     private double frameScale = MAX_SCALE;
     // While the saved settings are restored, a changed setting must not
     // remake the wallpaper or save the settings that are only half restored.
@@ -131,6 +133,25 @@ public class MonitorsViewModel {
     }
 
     /**
+     * Returns the name that tells where the wallpaper of a monitor comes from.
+     * It is the name of the registered folder. Without a folder, it is the
+     * file name of the source image. It is empty if the monitor has neither.
+     *
+     * @param monitor monitor of the source
+     * @return source name of the monitor
+     * @throws NullPointerException if monitor is null
+     */
+    public ObservableValue<String> sourceNameProperty(Monitor monitor) {
+        Objects.requireNonNull(monitor, "monitor must not be null");
+        var folder = folder(monitor.id());
+        var image = sourceImage(monitor.id());
+        return Bindings.createStringBinding(
+            () -> folder.get().or(image::get).map(MonitorsViewModel::fileName).orElse(""),
+            folder, image
+        );
+    }
+
+    /**
      * Returns the current wallpaper of a monitor.
      *
      * @param monitor monitor of the wallpaper
@@ -181,8 +202,8 @@ public class MonitorsViewModel {
      * image file decides what happens. A folder is registered as the image
      * folder of the monitor, and an image picked from it becomes the
      * wallpaper. An image file is fitted in the monitor and set as its
-     * wallpaper. Nothing happens if neither is dropped. The settings are
-     * saved after a change.
+     * wallpaper, and the folder of the monitor is unregistered. Nothing
+     * happens if neither is dropped. The settings are saved after a change.
      *
      * @param monitor monitor whose frame received the files
      * @param files   dropped files
@@ -196,13 +217,15 @@ public class MonitorsViewModel {
             if (Files.isDirectory(file)) {
                 folder(monitor.id()).set(Optional.of(file));
                 var picked = imagePicker.pick(file);
-                picked.ifPresent(image -> sourceImages.put(monitor.id(), image));
+                picked.ifPresent(image -> sourceImage(monitor.id()).set(Optional.of(image)));
                 saveSettings();
                 picked.ifPresent(image -> applyWallpaper(monitor, image));
                 return;
             }
             if (ImageFiles.hasImageExtension(file)) {
-                sourceImages.put(monitor.id(), file);
+                // A folder left registered would replace the dropped image on the next randomize.
+                folder(monitor.id()).set(Optional.empty());
+                sourceImage(monitor.id()).set(Optional.of(file));
                 saveSettings();
                 applyWallpaper(monitor, file);
                 return;
@@ -224,7 +247,7 @@ public class MonitorsViewModel {
                 .ifPresent(image -> picked.put(monitor, image));
         }
         if (picked.isEmpty()) { return; }
-        picked.forEach((monitor, image) -> sourceImages.put(monitor.id(), image));
+        picked.forEach((monitor, image) -> sourceImage(monitor.id()).set(Optional.of(image)));
         saveSettings();
         // In the order of the frames, so the monitors change from left to right.
         for (var monitor : monitors) {
@@ -245,7 +268,7 @@ public class MonitorsViewModel {
         try {
             saved.forEach((monitorId, settings) -> {
                 folder(monitorId).set(settings.folder());
-                settings.image().ifPresent(image -> sourceImages.put(monitorId, image));
+                sourceImage(monitorId).set(settings.image());
                 alignment(monitorId).set(settings.alignment());
                 fillColor(monitorId).set(settings.fillColor());
             });
@@ -264,7 +287,7 @@ public class MonitorsViewModel {
         for (var id : ids) {
             settings.put(
                 id, new MonitorSettings(
-                    folder(id).get(), Optional.ofNullable(sourceImages.get(id)),
+                    folder(id).get(), sourceImage(id).get(),
                     alignment(id).get(),
                     fillColor(id).get()
                 )
@@ -289,9 +312,8 @@ public class MonitorsViewModel {
                 if (restoring) { return; }
                 saveSettings();
                 var monitor = knownMonitors.get(monitorId);
-                var image = sourceImages.get(monitorId);
-                if (monitor != null && image != null) {
-                    applyWallpaper(monitor, image);
+                if (monitor != null) {
+                    sourceImage(monitorId).get().ifPresent(image -> applyWallpaper(monitor, image));
                 }
             });
             return setting;
@@ -301,6 +323,17 @@ public class MonitorsViewModel {
     private ReadOnlyObjectWrapper<Optional<Path>> folder(String monitorId) {
         return folders
             .computeIfAbsent(monitorId, _ -> new ReadOnlyObjectWrapper<>(Optional.empty()));
+    }
+
+    private ObjectProperty<Optional<Path>> sourceImage(String monitorId) {
+        return sourceImages
+            .computeIfAbsent(monitorId, _ -> new SimpleObjectProperty<>(Optional.empty()));
+    }
+
+    private static String fileName(Path path) {
+        var name = path.getFileName();
+        // A drive root such as C:\ has no file name.
+        return name == null ? path.toString() : name.toString();
     }
 
     private ReadOnlyObjectWrapper<Optional<Path>> wallpaper(String monitorId) {

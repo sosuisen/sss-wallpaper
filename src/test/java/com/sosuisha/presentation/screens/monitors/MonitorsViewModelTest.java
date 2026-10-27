@@ -189,6 +189,82 @@ class MonitorsViewModelTest {
     }
 
     @Test
+    @DisplayName("フォルダを登録した枠に画像をドロップすると、フォルダの登録が解除され、保存される")
+    void dropping_an_image_on_a_frame_with_a_folder_unregisters_and_saves_the_folder()
+        throws IOException {
+        var folder = Files.createDirectory(tempDir.resolve("photos"));
+        var saved = new ArrayList<Map<String, MonitorSettings>>();
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG, savingRepository(saved)
+        );
+        viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
+
+        viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("photo.png")));
+
+        assertEquals(Optional.empty(), viewModel.folderProperty(LEFT_MONITOR).get());
+        assertEquals(
+            Optional.empty(),
+            saved.getLast().getOrDefault("left", MonitorSettings.DEFAULT).folder()
+        );
+    }
+
+    @Test
+    @DisplayName("フォルダを登録した枠には、フォルダの名前が表示される")
+    void a_frame_with_a_folder_shows_the_name_of_the_folder() throws IOException {
+        var folder = Files.createDirectory(tempDir.resolve("cats"));
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG,
+            new NullMonitorSettingsRepository()
+        );
+
+        viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
+
+        assertEquals("cats", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
+    }
+
+    @Test
+    @DisplayName("フォルダを登録した枠に画像をドロップすると、画像のファイル名が表示される")
+    void dropping_an_image_on_a_frame_with_a_folder_shows_the_file_name_of_the_image()
+        throws IOException {
+        var folder = Files.createDirectory(tempDir.resolve("cats"));
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG,
+            new NullMonitorSettingsRepository()
+        );
+        var sourceName = viewModel.sourceNameProperty(LEFT_MONITOR);
+        viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
+
+        viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("dir", "photo.png")));
+
+        assertEquals("photo.png", sourceName.getValue());
+    }
+
+    @Test
+    @DisplayName("フォルダも画像もない枠には、何も表示されない")
+    void a_frame_without_a_folder_or_an_image_shows_nothing() {
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
+            new NullMonitorSettingsRepository()
+        );
+
+        assertEquals("", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
+    }
+
+    @Test
+    @DisplayName("ドライブのルートを登録した枠には、ルートのパスが表示される")
+    void a_frame_with_a_drive_root_shows_the_path_of_the_root() {
+        var root = tempDir.getRoot();
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
+            new NullMonitorSettingsRepository()
+        );
+
+        viewModel.dropFiles(LEFT_MONITOR, List.of(root));
+
+        assertEquals(root.toString(), viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
+    }
+
+    @Test
     @DisplayName("モニター一覧を読み込むと、保存されたフォルダの登録も各モニターに読み込まれる")
     void loading_the_monitors_also_loads_the_saved_folder_of_each_monitor() {
         var service = new NullWallpaperService() {
