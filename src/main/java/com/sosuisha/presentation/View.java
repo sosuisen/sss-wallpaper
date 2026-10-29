@@ -23,11 +23,11 @@ public interface View {
 
     /**
      * Returns the style of the window that shows this view. The default is
-     * {@link StageStyle#DECORATED}.
+     * {@link StageStyle#EXTENDED}, so every view draws its own header bar.
      *
      * @return style of the window of this view
      */
     default StageStyle stageStyle() {
-        return StageStyle.DECORATED;
+        return StageStyle.EXTENDED;
     }
 }

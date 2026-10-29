@@ -18,6 +18,7 @@ import com.sosuisha.domain.model.FillColor;
 import com.sosuisha.domain.model.Monitor;
 import com.sosuisha.domain.model.MonitorSettings;
 import com.sosuisha.domain.repository.NullMonitorSettingsRepository;
+import com.sosuisha.domain.service.NullFolderOpener;
 import com.sosuisha.domain.service.NullImageComposer;
 import com.sosuisha.domain.service.NullWallpaperService;
 import com.sosuisha.presentation.screens.monitors.MonitorsViewModel;
@@ -64,7 +65,7 @@ class LauncherTest {
         };
         var viewModel = new MonitorsViewModel(
             service, new NullImageComposer(), folder -> Optional.of(folder.resolve("random.png")),
-            repository
+            repository, new NullFolderOpener()
         );
 
         Launcher.randomizeWithoutWindow(viewModel);

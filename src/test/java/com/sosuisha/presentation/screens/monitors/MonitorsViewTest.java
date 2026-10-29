@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,15 +31,19 @@ import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HeaderBar;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 @ExtendWith(ApplicationExtension.class)
 class MonitorsViewTest {
     private static final Path WALLPAPER = Path.of("wallpapers", "current.png").toAbsolutePath();
 
     private MonitorsViewModel viewModel;
+    private Stage stage;
+    private final List<Path> openedFolders = new ArrayList<>();
 
     @Start
     void setup(Stage stage) {
@@ -71,15 +76,53 @@ class MonitorsViewTest {
         };
         viewModel = new MonitorsViewModel(
             service, new NullImageComposer(),
-            folder -> Optional.of(folder.resolve("random.png")), repository
+            folder -> Optional.of(folder.resolve("random.png")), repository, openedFolders::add
         );
         var windowManager = new WindowManager();
         windowManager.registerView(new MonitorsView(viewModel));
         // The injected primary stage is reused across tests and rejects
         // initStyle, so the view gets a fresh stage.
-        windowManager.showWindow(MonitorsView.class, new Stage());
+        this.stage = new Stage();
+        windowManager.showWindow(MonitorsView.class, this.stage);
         // Loaded after the window is shown, so the frames must follow the list.
         viewModel.loadMonitors();
+    }
+
+    @Test
+    @DisplayName("ウィンドウは、OSのタイトルバーのないEXTENDEDで表示される")
+    void the_window_is_shown_in_the_extended_style_without_the_title_bar_of_the_os() {
+        assertEquals(StageStyle.EXTENDED, stage.getStyle());
+    }
+
+    @Test
+    @DisplayName("HeaderBarに、ウィンドウのタイトルが表示される")
+    void the_title_of_the_window_is_shown_in_the_header_bar(FxRobot robot) {
+        var headerBar = robot.lookup("#headerBar").queryAs(HeaderBar.class);
+
+        var title = robot.from(headerBar).lookup("#title").queryLabeled();
+
+        assertEquals(stage.getTitle(), title.getText());
+    }
+
+    @Test
+    @DisplayName("フォルダを登録した枠の「場所を開く」ボタンを押すと、そのフォルダが開かれる")
+    void pressing_open_location_of_a_frame_with_a_folder_opens_the_folder(FxRobot robot) {
+        var leftFrame = robot.lookup("#monitorFrames").queryAs(Pane.class).getChildren().getFirst();
+        var openLocation = robot.from(leftFrame).lookup("#openLocation").queryButton();
+
+        robot.interact(openLocation::fire);
+
+        assertEquals(List.of(Path.of("pictures", "cats")), openedFolders);
+    }
+
+    @Test
+    @DisplayName("フォルダも画像もない枠の「場所を開く」ボタンは、押せない")
+    void open_location_of_a_frame_without_a_folder_or_an_image_is_disabled(FxRobot robot) {
+        var rightFrame = robot.lookup("#monitorFrames").queryAs(Pane.class).getChildren().getLast();
+
+        var openLocation = robot.from(rightFrame).lookup("#openLocation").queryButton();
+
+        assertEquals(true, openLocation.isDisabled());
     }
 
     @Test
