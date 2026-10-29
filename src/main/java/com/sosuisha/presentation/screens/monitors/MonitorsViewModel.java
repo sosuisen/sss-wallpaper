@@ -121,18 +121,6 @@ public class MonitorsViewModel {
     }
 
     /**
-     * Returns the image folder registered for a monitor.
-     *
-     * @param monitor monitor of the folder
-     * @return folder property of the monitor. It is empty if no folder is registered.
-     * @throws NullPointerException if monitor is null
-     */
-    public ReadOnlyObjectProperty<Optional<Path>> folderProperty(Monitor monitor) {
-        Objects.requireNonNull(monitor, "monitor must not be null");
-        return folder(monitor.id()).getReadOnlyProperty();
-    }
-
-    /**
      * Returns the name that tells where the wallpaper of a monitor comes from.
      * It is the name of the registered folder. Without a folder, it is the
      * file name of the source image. It is empty if the monitor has neither.

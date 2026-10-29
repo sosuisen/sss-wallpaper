@@ -147,7 +147,7 @@ class MonitorsViewModelTest {
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
 
-        assertEquals(Optional.of(folder), viewModel.folderProperty(LEFT_MONITOR).get());
+        assertEquals("photos", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
         assertEquals(
             Optional.of(folder),
             saved.getLast().getOrDefault("left", MonitorSettings.DEFAULT).folder()
@@ -184,7 +184,7 @@ class MonitorsViewModelTest {
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
 
-        assertEquals(Optional.of(folder), viewModel.folderProperty(LEFT_MONITOR).get());
+        assertEquals("empty", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
         assertEquals(List.of(), wallpapers);
     }
 
@@ -201,7 +201,8 @@ class MonitorsViewModelTest {
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("photo.png")));
 
-        assertEquals(Optional.empty(), viewModel.folderProperty(LEFT_MONITOR).get());
+        // A registered folder wins over the image, so the image name means the folder is gone.
+        assertEquals("photo.png", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
         assertEquals(
             Optional.empty(),
             saved.getLast().getOrDefault("left", MonitorSettings.DEFAULT).folder()
@@ -287,7 +288,7 @@ class MonitorsViewModelTest {
 
         viewModel.loadMonitors();
 
-        assertEquals(Optional.of(Path.of("photos")), viewModel.folderProperty(LEFT_MONITOR).get());
+        assertEquals("photos", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
     }
 
     @Test
