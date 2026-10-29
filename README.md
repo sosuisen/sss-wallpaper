@@ -100,6 +100,14 @@ mvn test -Pdesktop
 
 `mvn test`を実行すると、JaCoCoでコードカバレッジも測ります。レポートは`target/site/jacoco/index.html`に出力されます。OSのAPIを直接呼ぶクラスと起動用のクラスは、測定から外しています。対象のクラスは`pom.xml`に書いてあります。
 
+ミューテーションテストには、PITを使います。PITは、コードを少しずつ壊した版を作り、テストがその変化に気づくかを調べます。時間がかかるので、`mvn test`とは別に実行します。
+
+```bash
+mvn test-compile org.pitest:pitest-maven:mutationCoverage
+```
+
+レポートは`target/pit-reports/index.html`に出力されます。
+
 ## 実行ファイルを作る
 
 ```bash

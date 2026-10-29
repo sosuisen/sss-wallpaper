@@ -175,6 +175,47 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.30.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>1.2.3</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <targetClasses>
+            <param>com.sosuisha.*</param>
+          </targetClasses>
+          <targetTests>
+            <param>com.sosuisha.*</param>
+          </targetTests>
+          <!-- The same classes as the JaCoCo excludes. -->
+          <excludedClasses>
+            <param>com.sosuisha.service.DesktopWallpaperService*</param>
+            <param>com.sosuisha.service.ExplorerFolderOpener*</param>
+            <param>com.sosuisha.domain.exception.FolderOpenException*</param>
+            <param>com.sosuisha.presentation.FileDrop*</param>
+            <param>com.sosuisha.main.Launcher*</param>
+            <param>com.sosuisha.main.App*</param>
+          </excludedClasses>
+          <excludedGroups>
+            <param>desktop</param>
+          </excludedGroups>
+          <!-- The same settings as surefire. The JavaFX DLLs are extracted
+               once by the first run, which runs alone. -->
+          <jvmArgs>
+            <jvmArg>--enable-native-access=ALL-UNNAMED</jvmArg>
+            <jvmArg>-Djavafx.cachedir=${project.build.directory}/javafx-cache/pit</jvmArg>
+            <jvmArg>-Dglass.platform=Headless</jvmArg>
+          </jvmArgs>
+          <threads>4</threads>
+          <timestampedReports>false</timestampedReports>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>net.revelc.code.formatter</groupId>
         <artifactId>formatter-maven-plugin</artifactId>
         <version>2.29.0</version>
