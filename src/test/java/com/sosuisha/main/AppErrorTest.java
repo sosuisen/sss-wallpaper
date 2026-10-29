@@ -21,6 +21,7 @@ import com.sosuisha.domain.exception.WallpaperException;
 import javafx.application.Platform;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
 @ExtendWith(ApplicationExtension.class)
@@ -58,5 +59,19 @@ class AppErrorTest {
         var content = assertInstanceOf(Label.class, pane.getExpandableContent());
         assertEquals("Cannot set the wallpaper.", content.getText());
         assertTrue(stage.isShowing());
+    }
+
+    @Test
+    @DisplayName("FXスレッドで想定外の例外が起きると、その内容を含むエラーダイアログが表示される")
+    void an_unexpected_exception_on_the_fx_thread_shows_an_error_dialog_with_the_exception(
+        FxRobot robot) {
+        Platform.runLater(() -> {
+            throw new IllegalStateException("boom");
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        var pane = robot.lookup(".dialog-pane").queryAs(DialogPane.class);
+        var details = assertInstanceOf(TextArea.class, pane.getExpandableContent());
+        assertTrue(details.getText().contains("IllegalStateException: boom"));
     }
 }
