@@ -133,6 +133,7 @@ public class MonitorsView implements View {
             VBoxBuilder.withChildren(
                 ButtonBuilder.create()
                     .id("openLocation")
+                    .addStyleClass(Styles.SMALL)
                     .text("Open location")
                     .disablePropertyApply(
                         disable -> disable
@@ -142,6 +143,7 @@ public class MonitorsView implements View {
                     .build(),
                 ComboBoxBuilder.<Alignment>create()
                     .id("alignment")
+                    .addStyleClass(Styles.SMALL)
                     .apply(comboBox -> comboBox.getItems().addAll(Alignment.values()))
                     .valuePropertyApply(
                         prop -> prop.bindBidirectional(viewModel.alignmentProperty(monitor))
@@ -149,6 +151,7 @@ public class MonitorsView implements View {
                     .build(),
                 ComboBoxBuilder.<FillColor>create()
                     .id("fillColor")
+                    .addStyleClass(Styles.SMALL)
                     .apply(comboBox -> comboBox.getItems().addAll(FillColor.values()))
                     .valuePropertyApply(
                         prop -> prop.bindBidirectional(viewModel.fillColorProperty(monitor))
