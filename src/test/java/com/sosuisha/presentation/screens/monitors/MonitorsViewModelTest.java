@@ -180,6 +180,24 @@ class MonitorsViewModelTest {
     }
 
     @Test
+    @DisplayName("フォルダをドロップしたあとで寄せ方を変えると、フォルダから選んだ画像で壁紙が作り直される")
+    void changing_the_alignment_after_dropping_a_folder_remakes_the_wallpaper_from_the_picked_image()
+        throws IOException {
+        var folder = Files.createDirectory(tempDir.resolve("photos"));
+        var wallpapers = new ArrayList<String>();
+        ImagePicker picker = from -> Optional.of(from.resolve("picked.jpg"));
+        var viewModel = viewModel(
+            recordingService(wallpapers), NAMING_COMPOSER, picker,
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
+        );
+        viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
+
+        viewModel.alignmentProperty(LEFT_MONITOR).set(Alignment.RIGHT);
+
+        assertEquals("left:picked.jpg@1920x1080-RIGHT-WHITE", wallpapers.getLast());
+    }
+
+    @Test
     @DisplayName("画像のないフォルダをドロップすると、フォルダは登録されるが、壁紙は変わらない")
     void dropping_a_folder_without_images_registers_it_but_does_not_change_the_wallpaper()
         throws IOException {

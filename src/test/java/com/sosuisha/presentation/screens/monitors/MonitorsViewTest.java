@@ -139,6 +139,17 @@ class MonitorsViewTest {
     }
 
     @Test
+    @DisplayName("枠には、左から順に1からの番号が表示される")
+    void the_frames_show_numbers_from_1_in_order_from_the_left(FxRobot robot) {
+        var frames = robot.lookup("#monitorFrames").queryAs(Pane.class).getChildren();
+
+        var numbers = frames.stream()
+            .map(frame -> robot.from(frame).lookup("#number").queryLabeled().getText())
+            .toList();
+        assertEquals(List.of("1", "2"), numbers);
+    }
+
+    @Test
     @DisplayName("枠の寄せ方を右寄せに切り替えると、そのモニターの寄せ方が右寄せになる")
     void switching_the_alignment_of_a_frame_to_right_sets_the_alignment_of_the_monitor_to_right(
         FxRobot robot) {
