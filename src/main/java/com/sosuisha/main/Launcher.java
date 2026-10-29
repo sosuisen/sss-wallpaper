@@ -16,6 +16,8 @@ public class Launcher {
     /** Option that randomizes the wallpapers without a window and exits. */
     static final String RANDOMIZE_OPTION = "--randomize";
 
+    private Launcher() {}
+
     /**
      * Application entry point. With {@value #RANDOMIZE_OPTION}, it changes the
      * wallpapers at random and exits without showing a window.
