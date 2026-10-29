@@ -1,6 +1,7 @@
 package com.sosuisha.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.sosuisha.domain.exception.RepositoryException;
 import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;
 import com.sosuisha.domain.model.MonitorSettings;
@@ -80,5 +82,31 @@ class PropertiesMonitorSettingsRepositoryTest {
             ),
             repository.load()
         );
+    }
+
+    @Test
+    @DisplayName("設定ファイルに書き込めないとき、RepositoryExceptionを投げる")
+    void settings_that_cannot_be_written_throw_repository_exception() throws IOException {
+        // A folder in place of the settings file makes writing fail.
+        var repository = new PropertiesMonitorSettingsRepository(
+            Files.createDirectory(tempDir.resolve("settings.properties"))
+        );
+        var settings = Map.of(
+            "first",
+            new MonitorSettings(Optional.empty(), Optional.empty(), Alignment.LEFT, FillColor.WHITE)
+        );
+
+        assertThrows(RepositoryException.class, () -> repository.save(settings));
+    }
+
+    @Test
+    @DisplayName("寄せ方の名前が壊れた設定ファイル（手で書き換えたときなど）を読み込むと、RepositoryExceptionを投げる")
+    void loading_a_settings_file_with_a_broken_alignment_name_throws_repository_exception()
+        throws IOException {
+        var file = tempDir.resolve("settings.properties");
+        Files.writeString(file, "first.alignment=TOP\n");
+        var repository = new PropertiesMonitorSettingsRepository(file);
+
+        assertThrows(RepositoryException.class, repository::load);
     }
 }

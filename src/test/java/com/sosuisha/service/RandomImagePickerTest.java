@@ -1,6 +1,7 @@
 package com.sosuisha.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,6 +12,8 @@ import java.util.random.RandomGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import com.sosuisha.domain.exception.FolderReadException;
 
 class RandomImagePickerTest {
     @TempDir
@@ -39,6 +42,14 @@ class RandomImagePickerTest {
         var picker = new RandomImagePicker(fixedIndex(0));
 
         assertEquals(Optional.empty(), picker.pick(tempDir));
+    }
+
+    @Test
+    @DisplayName("フォルダが読めないとき（消されたときなど）、FolderReadExceptionを投げる")
+    void a_folder_that_cannot_be_read_such_as_a_deleted_one_throws_folder_read_exception() {
+        var picker = new RandomImagePicker(fixedIndex(0));
+
+        assertThrows(FolderReadException.class, () -> picker.pick(tempDir.resolve("deleted")));
     }
 
     private static RandomGenerator fixedIndex(int index) {

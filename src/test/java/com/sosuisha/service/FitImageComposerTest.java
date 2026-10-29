@@ -122,6 +122,32 @@ class FitImageComposerTest {
         assertEquals(BLACK, fitted.getRGB(199, 50));
     }
 
+    @Test
+    @DisplayName("元の画像が消されているとき、合成しようとするとImageComposeExceptionを投げる")
+    void composing_a_deleted_source_image_throws_image_compose_exception() {
+        var composer = new FitImageComposer(tempDir.resolve("out"));
+        var deleted = tempDir.resolve("deleted.png");
+
+        assertThrows(
+            ImageComposeException.class,
+            () -> composer.compose(deleted, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE)
+        );
+    }
+
+    @Test
+    @DisplayName("合成した画像を保存できないとき、ImageComposeExceptionを投げる")
+    void a_composed_image_that_cannot_be_saved_throws_image_compose_exception() throws IOException {
+        // A file in place of the output folder makes saving fail.
+        var notFolder = Files.createFile(tempDir.resolve("out"));
+        var composer = new FitImageComposer(notFolder);
+        var source = writeRedPng("source.png", 50, 100);
+
+        assertThrows(
+            ImageComposeException.class,
+            () -> composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE)
+        );
+    }
+
     private static BufferedImage redImage(int width, int height) {
         var image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         var graphics = image.createGraphics();
