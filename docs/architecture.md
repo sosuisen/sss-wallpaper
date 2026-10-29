@@ -39,6 +39,12 @@ sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJav
 
 `MonitorsViewModel`は、5つのインタフェースをコンストラクタで受け取ります。具体的なクラスを組み立てるのは`App.createMonitorsViewModel()`だけです。テストでは、`NullWallpaperService`などのテスト用の実装に差し替えます。
 
+クラスの関係は、次のクラス図で見られます。
+
+![クラス図](classdiagram.svg)
+
+この図は、classdiagram-maven-pluginがビルドのたびに描き直します。`compile`フェーズで、コンパイラーの後に動きます。手で編集しないでください。
+
 ## 外部とのやり取り
 
 ### Windowsの壁紙のAPI
@@ -153,5 +159,6 @@ ComboBoxとViewModelのPropertyは、双方向にバインドしています。�
 
 - ADR
   - [ADR 1: IDesktopWallpaper COM via FFM API](adr/adr-001-idesktopwallpaper-via-ffm.md)
+- クラス図：[classdiagram.svg](classdiagram.svg)（ビルドで自動生成）
 - リアクティブな依存の図：[reactive-dependencies.png](reactive-dependencies.png)（元のファイルは`reactive-dependencies.drawio`）
 - ストーリーマップ：[storymap.md](storymap.md)
