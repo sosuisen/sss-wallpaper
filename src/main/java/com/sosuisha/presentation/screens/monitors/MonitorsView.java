@@ -15,6 +15,7 @@ import io.github.sosuisen.jfxbuilder.controls.ButtonBuilder;
 import io.github.sosuisen.jfxbuilder.controls.ComboBoxBuilder;
 import io.github.sosuisen.jfxbuilder.controls.LabelBuilder;
 import io.github.sosuisen.jfxbuilder.graphics.HBoxBuilder;
+import io.github.sosuisen.jfxbuilder.graphics.HeaderBarBuilder;
 import io.github.sosuisen.jfxbuilder.graphics.ImageViewBuilder;
 import io.github.sosuisen.jfxbuilder.graphics.SceneBuilder;
 import io.github.sosuisen.jfxbuilder.graphics.StackPaneBuilder;
@@ -28,6 +29,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.HeaderBar;
 import javafx.scene.layout.Region;
 
 /**
@@ -76,14 +78,25 @@ public class MonitorsView implements View {
             .addStyleClass(Styles.ACCENT)
             .onAction(_ -> viewModel.randomizeAll())
             .build();
+        var content = VBoxBuilder.withChildren(randomize, frames)
+            .alignment(Pos.TOP_CENTER)
+            .spacing(10)
+            .padding(new Insets(10))
+            .build();
         return SceneBuilder
-            .create(
-                VBoxBuilder.withChildren(randomize, frames)
-                    .alignment(Pos.TOP_CENTER)
-                    .spacing(10)
-                    .padding(new Insets(10))
-                    .build(),
-                WIDTH, HEIGHT
+            .create(VBoxBuilder.withChildren(headerBar(), content).build(), WIDTH, HEIGHT)
+            .build();
+    }
+
+    private static HeaderBar headerBar() {
+        return HeaderBarBuilder.create()
+            .id("headerBar")
+            .left(
+                LabelBuilder.create()
+                    .id("title")
+                    .text(TITLE)
+                    .padding(new Insets(0, 10, 0, 10))
+                    .build()
             )
             .build();
     }

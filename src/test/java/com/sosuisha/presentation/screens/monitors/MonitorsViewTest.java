@@ -30,15 +30,18 @@ import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HeaderBar;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 @ExtendWith(ApplicationExtension.class)
 class MonitorsViewTest {
     private static final Path WALLPAPER = Path.of("wallpapers", "current.png").toAbsolutePath();
 
     private MonitorsViewModel viewModel;
+    private Stage stage;
 
     @Start
     void setup(Stage stage) {
@@ -77,9 +80,26 @@ class MonitorsViewTest {
         windowManager.registerView(new MonitorsView(viewModel));
         // The injected primary stage is reused across tests and rejects
         // initStyle, so the view gets a fresh stage.
-        windowManager.showWindow(MonitorsView.class, new Stage());
+        this.stage = new Stage();
+        windowManager.showWindow(MonitorsView.class, this.stage);
         // Loaded after the window is shown, so the frames must follow the list.
         viewModel.loadMonitors();
+    }
+
+    @Test
+    @DisplayName("ウィンドウは、OSのタイトルバーのないEXTENDEDで表示される")
+    void the_window_is_shown_in_the_extended_style_without_the_title_bar_of_the_os() {
+        assertEquals(StageStyle.EXTENDED, stage.getStyle());
+    }
+
+    @Test
+    @DisplayName("HeaderBarに、ウィンドウのタイトルが表示される")
+    void the_title_of_the_window_is_shown_in_the_header_bar(FxRobot robot) {
+        var headerBar = robot.lookup("#headerBar").queryAs(HeaderBar.class);
+
+        var title = robot.from(headerBar).lookup("#title").queryLabeled();
+
+        assertEquals(stage.getTitle(), title.getText());
     }
 
     @Test

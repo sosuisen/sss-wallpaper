@@ -17,6 +17,8 @@ sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJav
 |---|---|---|
 | モニターの一覧 | `MonitorsView` | モニターごとの枠を、実際の並びと大きさの比率で横に並べる。枠には現在の壁紙のサムネイル、フォルダ名か画像名、寄せ方と埋める色のComboBoxがある。上に「Randomize all」ボタンがある |
 
+ウィンドウは`StageStyle.EXTENDED`で開きます。OSのタイトルバーは出ません。代わりに、各画面が`HeaderBar`を描き、その左にタイトルを置きます。`View`の`stageStyle()`の既定値が`EXTENDED`なので、新しい画面もこの形になります。
+
 ## レイヤーとパッケージ
 
 構成はMVVMです。AppModelはありません。共有する状態がまだないためです。
