@@ -21,6 +21,7 @@ import com.sosuisha.domain.model.MonitorSettings;
 import com.sosuisha.domain.repository.NullMonitorSettingsRepository;
 import com.sosuisha.domain.service.ImageComposer;
 import com.sosuisha.domain.service.ImagePicker;
+import com.sosuisha.domain.service.NullFolderOpener;
 import com.sosuisha.domain.service.NullWallpaperService;
 import com.sosuisha.domain.service.WallpaperService;
 
@@ -55,7 +56,8 @@ class MonitorsViewModelTest {
             }
         };
         var viewModel = new MonitorsViewModel(
-            service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository()
+            service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository(),
+            new NullFolderOpener()
         );
 
         viewModel.loadMonitors();
@@ -70,7 +72,7 @@ class MonitorsViewModelTest {
         var wallpapers = new ArrayList<String>();
         var viewModel = new MonitorsViewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("notes.txt"), Path.of("photo.JPG")));
@@ -84,7 +86,7 @@ class MonitorsViewModelTest {
         var wallpapers = new ArrayList<String>();
         var viewModel = new MonitorsViewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("notes.txt"), Path.of("folder")));
@@ -97,7 +99,7 @@ class MonitorsViewModelTest {
     void the_default_alignment_is_left() {
         var viewModel = new MonitorsViewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         assertEquals(Alignment.LEFT, viewModel.alignmentProperty(LEFT_MONITOR).get());
@@ -109,7 +111,7 @@ class MonitorsViewModelTest {
         var wallpapers = new ArrayList<String>();
         var viewModel = new MonitorsViewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
         viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("first.png")));
         viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("second.png")));
@@ -125,7 +127,7 @@ class MonitorsViewModelTest {
         var wallpapers = new ArrayList<String>();
         var viewModel = new MonitorsViewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         viewModel.alignmentProperty(LEFT_MONITOR).set(Alignment.RIGHT);
@@ -142,7 +144,8 @@ class MonitorsViewModelTest {
         var repository = savingRepository(saved);
         var viewModel =
             new MonitorsViewModel(
-                new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, repository
+                new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, repository,
+                new NullFolderOpener()
             );
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
@@ -163,7 +166,7 @@ class MonitorsViewModelTest {
         ImagePicker picker = from -> Optional.of(from.resolve("picked.jpg"));
         var viewModel = new MonitorsViewModel(
             recordingService(wallpapers), NAMING_COMPOSER, picker,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
@@ -179,7 +182,7 @@ class MonitorsViewModelTest {
         var wallpapers = new ArrayList<String>();
         var viewModel = new MonitorsViewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
@@ -195,7 +198,8 @@ class MonitorsViewModelTest {
         var folder = Files.createDirectory(tempDir.resolve("photos"));
         var saved = new ArrayList<Map<String, MonitorSettings>>();
         var viewModel = new MonitorsViewModel(
-            new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG, savingRepository(saved)
+            new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG, savingRepository(saved),
+            new NullFolderOpener()
         );
         viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
 
@@ -215,7 +219,7 @@ class MonitorsViewModelTest {
         var folder = Files.createDirectory(tempDir.resolve("cats"));
         var viewModel = new MonitorsViewModel(
             new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
@@ -230,7 +234,7 @@ class MonitorsViewModelTest {
         var folder = Files.createDirectory(tempDir.resolve("cats"));
         var viewModel = new MonitorsViewModel(
             new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
         var sourceName = viewModel.sourceNameProperty(LEFT_MONITOR);
         viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
@@ -245,7 +249,7 @@ class MonitorsViewModelTest {
     void a_frame_without_a_folder_or_an_image_shows_nothing() {
         var viewModel = new MonitorsViewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         assertEquals("", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
@@ -257,7 +261,7 @@ class MonitorsViewModelTest {
         var root = tempDir.getRoot();
         var viewModel = new MonitorsViewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(root));
@@ -284,7 +288,9 @@ class MonitorsViewModelTest {
             )
         );
         var viewModel =
-            new MonitorsViewModel(service, NAMING_COMPOSER, NO_IMAGE_PICKER, repository);
+            new MonitorsViewModel(
+                service, NAMING_COMPOSER, NO_IMAGE_PICKER, repository, new NullFolderOpener()
+            );
 
         viewModel.loadMonitors();
 
@@ -340,7 +346,8 @@ class MonitorsViewModelTest {
             }
         };
         var viewModel = new MonitorsViewModel(
-            service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository()
+            service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository(),
+            new NullFolderOpener()
         );
 
         viewModel.loadMonitors();
@@ -380,7 +387,8 @@ class MonitorsViewModelTest {
     void dropping_an_image_saves_the_source_image_and_the_alignment_as_the_settings_of_the_monitor() {
         var saved = new ArrayList<Map<String, MonitorSettings>>();
         var viewModel = new MonitorsViewModel(
-            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, savingRepository(saved)
+            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, savingRepository(saved),
+            new NullFolderOpener()
         );
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("photo.png")));
@@ -398,7 +406,8 @@ class MonitorsViewModelTest {
     void changing_the_alignment_saves_the_alignment() {
         var saved = new ArrayList<Map<String, MonitorSettings>>();
         var viewModel = new MonitorsViewModel(
-            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, savingRepository(saved)
+            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, savingRepository(saved),
+            new NullFolderOpener()
         );
 
         viewModel.alignmentProperty(LEFT_MONITOR).set(Alignment.RIGHT);
@@ -431,7 +440,8 @@ class MonitorsViewModelTest {
             }
         };
         var viewModel = new MonitorsViewModel(
-            recordingService(wallpapers, LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER, repository
+            recordingService(wallpapers, LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER,
+            repository, new NullFolderOpener()
         );
 
         viewModel.loadMonitors();
@@ -454,7 +464,8 @@ class MonitorsViewModelTest {
             )
         );
         var viewModel = new MonitorsViewModel(
-            recordingService(wallpapers, LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER, repository
+            recordingService(wallpapers, LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER,
+            repository, new NullFolderOpener()
         );
         viewModel.loadMonitors();
 
@@ -468,7 +479,7 @@ class MonitorsViewModelTest {
     void the_default_fill_color_is_white() {
         var viewModel = new MonitorsViewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            new NullMonitorSettingsRepository()
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
 
         assertEquals(FillColor.WHITE, viewModel.fillColorProperty(LEFT_MONITOR).get());
@@ -487,7 +498,8 @@ class MonitorsViewModelTest {
             )
         );
         var viewModel = new MonitorsViewModel(
-            recordingService(wallpapers, LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER, repository
+            recordingService(wallpapers, LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER,
+            repository, new NullFolderOpener()
         );
         viewModel.loadMonitors();
 
@@ -501,7 +513,8 @@ class MonitorsViewModelTest {
     void changing_the_fill_color_saves_the_fill_color() {
         var saved = new ArrayList<Map<String, MonitorSettings>>();
         var viewModel = new MonitorsViewModel(
-            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, savingRepository(saved)
+            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, savingRepository(saved),
+            new NullFolderOpener()
         );
 
         viewModel.fillColorProperty(LEFT_MONITOR).set(FillColor.BLACK);
@@ -524,12 +537,72 @@ class MonitorsViewModelTest {
         );
         var viewModel = new MonitorsViewModel(
             recordingService(new ArrayList<>(), LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER,
-            repository
+            repository, new NullFolderOpener()
         );
 
         viewModel.loadMonitors();
 
         assertEquals(FillColor.BLACK, viewModel.fillColorProperty(LEFT_MONITOR).get());
+    }
+
+    @Test
+    @DisplayName("フォルダを登録したモニターの場所を開くと、そのフォルダが開かれる")
+    void opening_the_location_of_a_monitor_with_a_folder_opens_the_folder() throws IOException {
+        var folder = Files.createDirectory(tempDir.resolve("photos"));
+        var opened = new ArrayList<Path>();
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG,
+            new NullMonitorSettingsRepository(), opened::add
+        );
+        viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
+
+        viewModel.openLocation(LEFT_MONITOR);
+
+        assertEquals(List.of(folder), opened);
+    }
+
+    @Test
+    @DisplayName("画像をドロップしたモニターの場所を開くと、画像のあるフォルダが開かれる")
+    void opening_the_location_of_a_monitor_with_an_image_opens_the_folder_of_the_image() {
+        var opened = new ArrayList<Path>();
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
+            new NullMonitorSettingsRepository(), opened::add
+        );
+        viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("pictures", "photo.png")));
+
+        viewModel.openLocation(LEFT_MONITOR);
+
+        assertEquals(List.of(Path.of("pictures")), opened);
+    }
+
+    @Test
+    @DisplayName("フォルダも画像もないモニターの場所を開いても、何も開かれない")
+    void opening_the_location_of_a_monitor_without_a_folder_or_an_image_opens_nothing() {
+        var opened = new ArrayList<Path>();
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
+            new NullMonitorSettingsRepository(), opened::add
+        );
+
+        viewModel.openLocation(LEFT_MONITOR);
+
+        assertEquals(List.of(), opened);
+    }
+
+    @Test
+    @DisplayName("フォルダも画像もないモニターは場所を開けず、画像をドロップすると開けるようになる")
+    void the_location_can_be_opened_only_after_the_monitor_gets_a_folder_or_an_image() {
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
+        );
+        var canOpen = viewModel.canOpenLocationProperty(LEFT_MONITOR);
+        assertEquals(false, canOpen.getValue());
+
+        viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("pictures", "photo.png")));
+
+        assertEquals(true, canOpen.getValue());
     }
 
     private static NullMonitorSettingsRepository savingRepository(
@@ -563,7 +636,7 @@ class MonitorsViewModelTest {
                 Map.of(
                     "left", folderSettings("left-photos"), "right", folderSettings("right-photos")
                 )
-            )
+            ), new NullFolderOpener()
         );
         viewModel.loadMonitors();
 
@@ -584,7 +657,8 @@ class MonitorsViewModelTest {
         var right = new Monitor("right", 1920, 0, 1080, 1920);
         var viewModel = new MonitorsViewModel(
             recordingService(wallpapers, LEFT_MONITOR, right), NAMING_COMPOSER, PICK_RANDOM_PNG,
-            loadingRepository(Map.of("right", folderSettings("right-photos")))
+            loadingRepository(Map.of("right", folderSettings("right-photos"))),
+            new NullFolderOpener()
         );
         viewModel.loadMonitors();
 
@@ -610,7 +684,7 @@ class MonitorsViewModelTest {
         };
         var viewModel = new MonitorsViewModel(
             recordingService(new ArrayList<>(), LEFT_MONITOR), NAMING_COMPOSER, PICK_RANDOM_PNG,
-            repository
+            repository, new NullFolderOpener()
         );
         viewModel.loadMonitors();
 
@@ -650,7 +724,8 @@ class MonitorsViewModelTest {
             }
         };
         return new MonitorsViewModel(
-            service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository()
+            service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository(),
+            new NullFolderOpener()
         );
     }
 

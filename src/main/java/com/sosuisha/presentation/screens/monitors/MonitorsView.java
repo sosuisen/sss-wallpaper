@@ -20,6 +20,7 @@ import io.github.sosuisen.jfxbuilder.graphics.ImageViewBuilder;
 import io.github.sosuisen.jfxbuilder.graphics.SceneBuilder;
 import io.github.sosuisen.jfxbuilder.graphics.StackPaneBuilder;
 import io.github.sosuisen.jfxbuilder.graphics.VBoxBuilder;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -130,6 +131,15 @@ public class MonitorsView implements View {
             // Stacked, because a frame of a portrait monitor is too narrow
             // for two combo boxes side by side.
             VBoxBuilder.withChildren(
+                ButtonBuilder.create()
+                    .id("openLocation")
+                    .text("Open location")
+                    .disablePropertyApply(
+                        disable -> disable
+                            .bind(Bindings.not(viewModel.canOpenLocationProperty(monitor)))
+                    )
+                    .onAction(_ -> viewModel.openLocation(monitor))
+                    .build(),
                 ComboBoxBuilder.<Alignment>create()
                     .id("alignment")
                     .apply(comboBox -> comboBox.getItems().addAll(Alignment.values()))

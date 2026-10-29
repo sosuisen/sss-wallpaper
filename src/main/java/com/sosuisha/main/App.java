@@ -10,6 +10,7 @@ import com.sosuisha.presentation.screens.monitors.MonitorsView;
 import com.sosuisha.presentation.screens.monitors.MonitorsViewModel;
 import com.sosuisha.repository.PropertiesMonitorSettingsRepository;
 import com.sosuisha.service.DesktopWallpaperService;
+import com.sosuisha.service.ExplorerFolderOpener;
 import com.sosuisha.service.FitImageComposer;
 import com.sosuisha.service.RandomImagePicker;
 
@@ -64,7 +65,7 @@ public class App extends Application {
             new DesktopWallpaperService(),
             new FitImageComposer(appFolder.resolve("wallpapers")),
             new RandomImagePicker(RandomGenerator.getDefault()),
-            new PropertiesMonitorSettingsRepository(settingsFile)
+            new PropertiesMonitorSettingsRepository(settingsFile), new ExplorerFolderOpener()
         );
     }
 }

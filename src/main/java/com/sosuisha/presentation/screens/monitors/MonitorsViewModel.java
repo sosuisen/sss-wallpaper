@@ -16,6 +16,7 @@ import com.sosuisha.domain.model.ImageFiles;
 import com.sosuisha.domain.model.Monitor;
 import com.sosuisha.domain.model.MonitorSettings;
 import com.sosuisha.domain.repository.MonitorSettingsRepository;
+import com.sosuisha.domain.service.FolderOpener;
 import com.sosuisha.domain.service.ImageComposer;
 import com.sosuisha.domain.service.ImagePicker;
 import com.sosuisha.domain.service.WallpaperService;
@@ -25,6 +26,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -42,6 +44,7 @@ public class MonitorsViewModel {
     private final ImageComposer imageComposer;
     private final ImagePicker imagePicker;
     private final MonitorSettingsRepository settingsRepository;
+    private final FolderOpener folderOpener;
     private final ObservableList<Monitor> monitors = FXCollections.observableArrayList();
     private final ObservableList<Monitor> readOnlyMonitors =
         FXCollections.unmodifiableObservableList(monitors);
@@ -66,11 +69,12 @@ public class MonitorsViewModel {
      * @param imageComposer      composer that fits a dropped image in a monitor
      * @param imagePicker        picker that chooses an image from a dropped folder
      * @param settingsRepository repository of the settings of each monitor
+     * @param folderOpener       opener that shows the location of a wallpaper source
      * @throws NullPointerException if any argument is null
      */
     public MonitorsViewModel(
         WallpaperService wallpaperService, ImageComposer imageComposer, ImagePicker imagePicker,
-        MonitorSettingsRepository settingsRepository) {
+        MonitorSettingsRepository settingsRepository, FolderOpener folderOpener) {
         this.wallpaperService =
             Objects.requireNonNull(wallpaperService, "wallpaperService must not be null");
         this.imageComposer =
@@ -78,6 +82,7 @@ public class MonitorsViewModel {
         this.imagePicker = Objects.requireNonNull(imagePicker, "imagePicker must not be null");
         this.settingsRepository =
             Objects.requireNonNull(settingsRepository, "settingsRepository must not be null");
+        this.folderOpener = Objects.requireNonNull(folderOpener, "folderOpener must not be null");
     }
 
     /**
@@ -137,6 +142,36 @@ public class MonitorsViewModel {
             () -> folder.get().or(image::get).map(MonitorsViewModel::fileName).orElse(""),
             folder, image
         );
+    }
+
+    /**
+     * Returns whether the location of the wallpaper source of a monitor can be
+     * opened. It is true when the monitor has a registered folder or a source image.
+     *
+     * @param monitor monitor of the location
+     * @return whether the location can be opened
+     * @throws NullPointerException if monitor is null
+     */
+    public ObservableBooleanValue canOpenLocationProperty(Monitor monitor) {
+        Objects.requireNonNull(monitor, "monitor must not be null");
+        var id = monitor.id();
+        return Bindings.createBooleanBinding(
+            () -> location(id).isPresent(), folder(id), sourceImage(id)
+        );
+    }
+
+    /**
+     * Opens the location of the wallpaper source of a monitor in the file
+     * manager. It is the registered folder, or the folder of the source image
+     * when no folder is registered. Nothing is opened if the monitor has neither.
+     *
+     * @param monitor monitor of the location
+     * @throws NullPointerException if monitor is null
+     * @throws com.sosuisha.domain.exception.FolderOpenException if the folder cannot be opened
+     */
+    public void openLocation(Monitor monitor) {
+        Objects.requireNonNull(monitor, "monitor must not be null");
+        location(monitor.id()).ifPresent(folderOpener::open);
     }
 
     /**
@@ -316,6 +351,14 @@ public class MonitorsViewModel {
     private ObjectProperty<Optional<Path>> sourceImage(String monitorId) {
         return sourceImages
             .computeIfAbsent(monitorId, _ -> new SimpleObjectProperty<>(Optional.empty()));
+    }
+
+    private Optional<Path> location(String monitorId) {
+        return folder(monitorId).get()
+            .or(
+                () -> sourceImage(monitorId).get()
+                    .flatMap(image -> Optional.ofNullable(image.getParent()))
+            );
     }
 
     private static String fileName(Path path) {

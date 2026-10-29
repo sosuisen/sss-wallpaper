@@ -15,7 +15,7 @@ sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJav
 
 | 画面 | クラス | 内容 |
 |---|---|---|
-| モニターの一覧 | `MonitorsView` | モニターごとの枠を、実際の並びと大きさの比率で横に並べる。枠には現在の壁紙のサムネイル、フォルダ名か画像名、寄せ方と埋める色のComboBoxがある。上に「Randomize all」ボタンがある |
+| モニターの一覧 | `MonitorsView` | モニターごとの枠を、実際の並びと大きさの比率で横に並べる。枠には現在の壁紙のサムネイル、フォルダ名か画像名、「Open location」ボタン、寄せ方と埋める色のComboBoxがある。上に「Randomize all」ボタンがある |
 
 ウィンドウは`StageStyle.EXTENDED`で開きます。OSのタイトルバーは出ません。代わりに、各画面が`HeaderBar`を描き、その左にタイトルを置きます。`View`の`stageStyle()`の既定値が`EXTENDED`なので、新しい画面もこの形になります。
 
@@ -26,10 +26,10 @@ sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJav
 | パッケージ | 役割 | 主なクラス・インタフェース |
 |---|---|---|
 | `domain.model` | ドメインモデル | `Monitor`（IDと位置と大きさ）、`MonitorSettings`（モニターごとの設定）、`Alignment`（寄せ方）、`FillColor`（埋める色）、`ImageFiles`（画像の拡張子の判定） |
-| `domain.service` | サービスのインタフェース | `WallpaperService`（モニターの列挙、壁紙の設定と取得）、`ImageComposer`（壁紙の画像の合成）、`ImagePicker`（フォルダから1枚を選ぶ） |
+| `domain.service` | サービスのインタフェース | `WallpaperService`（モニターの列挙、壁紙の設定と取得）、`ImageComposer`（壁紙の画像の合成）、`ImagePicker`（フォルダから1枚を選ぶ）、`FolderOpener`（フォルダをOSのファイルマネージャーで開く） |
 | `domain.repository` | リポジトリのインタフェース | `MonitorSettingsRepository`（設定の読み書き） |
-| `domain.exception` | ドメイン例外 | `UnrecoverableException`と、その子の`WallpaperException`、`ImageComposeException`、`FolderReadException`、`RepositoryException` |
-| `service` | サービスの実装 | `DesktopWallpaperService`、`HResult`、`FitImageComposer`、`RandomImagePicker` |
+| `domain.exception` | ドメイン例外 | `UnrecoverableException`と、その子の`WallpaperException`、`ImageComposeException`、`FolderReadException`、`FolderOpenException`、`RepositoryException` |
+| `service` | サービスの実装 | `DesktopWallpaperService`、`HResult`、`FitImageComposer`、`RandomImagePicker`、`ExplorerFolderOpener` |
 | `repository` | リポジトリの実装 | `PropertiesMonitorSettingsRepository` |
 | `presentation` | 画面の共通部品 | `View`、`WindowManager` |
 | `presentation.screens.monitors` | モニターの一覧の画面 | `MonitorsView`、`MonitorsViewModel`、`FrameSize`（枠の大きさ） |
@@ -37,7 +37,7 @@ sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJav
 
 依存の向きは、`presentation` → `domain`の一方向です。`service`と`repository`は、`domain`のインタフェースを実装します。`domain`は、ほかのパッケージに依存しません。
 
-`MonitorsViewModel`は、4つのインタフェースをコンストラクタで受け取ります。具体的なクラスを組み立てるのは`App.createMonitorsViewModel()`だけです。テストでは、`NullWallpaperService`などのテスト用の実装に差し替えます。
+`MonitorsViewModel`は、5つのインタフェースをコンストラクタで受け取ります。具体的なクラスを組み立てるのは`App.createMonitorsViewModel()`だけです。テストでは、`NullWallpaperService`などのテスト用の実装に差し替えます。
 
 ## 外部とのやり取り
 
@@ -127,6 +127,16 @@ Windowsの「Fit」は、画像を常に中央に置きます。左寄せや右�
 1. フォルダを登録した各モニターで、フォルダから画像を1枚選びます。
 2. 選べたモニターが1つもなければ、何もしません。
 3. 設定を保存してから、左のモニターから順に壁紙を作ります。
+
+### 場所を開く
+
+枠の「Open location」ボタンで`openLocation()`を呼びます。
+
+- フォルダを登録したモニターでは、そのフォルダを開きます。
+- フォルダがなく、元の画像があるモニターでは、画像のあるフォルダを開きます。
+- どちらもないモニターでは、ボタンを押せません。
+
+`ExplorerFolderOpener`が`explorer.exe`を起動して開きます。起動できないときは`FolderOpenException`を投げます。
 
 ### 寄せ方や埋める色の変更
 
