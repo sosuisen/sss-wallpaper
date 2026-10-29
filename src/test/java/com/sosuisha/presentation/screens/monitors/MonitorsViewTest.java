@@ -24,6 +24,9 @@ import com.sosuisha.domain.service.NullImageComposer;
 import com.sosuisha.domain.service.NullWallpaperService;
 import com.sosuisha.presentation.WindowManager;
 
+import atlantafx.base.theme.PrimerLight;
+
+import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.image.ImageView;
@@ -39,6 +42,8 @@ class MonitorsViewTest {
 
     @Start
     void setup(Stage stage) {
+        // MonitorsView uses looked-up colors of the theme, as App does.
+        Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         var service = new NullWallpaperService() {
             @Override
             public List<Monitor> listMonitors() {
