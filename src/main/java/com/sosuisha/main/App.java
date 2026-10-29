@@ -4,12 +4,14 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
+import com.sosuisha.domain.exception.UnrecoverableException;
 import com.sosuisha.domain.repository.MonitorSettingsRepository;
 import com.sosuisha.domain.service.ImagePicker;
 import com.sosuisha.domain.service.WallpaperChanger;
 import com.sosuisha.domain.service.WallpaperService;
 import com.sosuisha.presentation.View;
 import com.sosuisha.presentation.WindowManager;
+import com.sosuisha.presentation.screens.alert.AlertDialog;
 import com.sosuisha.presentation.screens.monitors.MonitorsView;
 import com.sosuisha.presentation.screens.monitors.MonitorsViewModel;
 import com.sosuisha.repository.PropertiesMonitorSettingsRepository;
@@ -46,13 +48,29 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         Objects.requireNonNull(stage, "stage must not be null");
+        Thread.currentThread().setUncaughtExceptionHandler((_, e) -> showError(e));
         setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         stage.getIcons().add(new Image(App.class.getResource(ICON_RESOURCE).toExternalForm()));
         var windowManager = new WindowManager();
         var monitorsViewModel = createMonitorsViewModel();
         windowManager.registerView(new MonitorsView(monitorsViewModel));
         windowManager.showWindow(FIRST_VIEW, stage);
-        monitorsViewModel.loadMonitors();
+        try {
+            monitorsViewModel.loadMonitors();
+        } catch (UnrecoverableException e) {
+            // An exception thrown out of start() does not reach the handler
+            // and stops the app, so the error is shown here.
+            showError(e);
+        }
+    }
+
+    private static void showError(Throwable e) {
+        if (e instanceof UnrecoverableException unrecoverable) {
+            AlertDialog.showError(unrecoverable.getMessage());
+        } else {
+            e.printStackTrace();
+            AlertDialog.showUnexpectedError(e);
+        }
     }
 
     /**

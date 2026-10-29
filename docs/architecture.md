@@ -34,6 +34,7 @@ sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJav
 | `service` | サービスの実装 | `ComposingWallpaperChanger`、`DesktopWallpaperService`、`HResult`、`FitImageComposer`、`RandomImagePicker`、`ExplorerFolderOpener` |
 | `repository` | リポジトリの実装 | `PropertiesMonitorSettingsRepository` |
 | `presentation` | 画面の共通部品 | `View`、`WindowManager` |
+| `presentation.screens.alert` | 共通のダイアログ | `AlertDialog`（エラーダイアログ） |
 | `presentation.screens.monitors` | モニターの一覧の画面 | `MonitorsView`、`MonitorsViewModel`、`FrameSize`（枠の大きさ） |
 | `main` | 起動とコンポジションルート | `Launcher`（`main`メソッド）、`App`（`Application`の子クラス） |
 
@@ -158,7 +159,11 @@ ComboBoxとViewModelのPropertyは、双方向にバインドしています。�
 回復できないエラーは、`UnrecoverableException`の子クラスで表します。
 
 - ウィンドウなしの起動では、`Launcher`がメッセージを出して終了コード1で終わります。
-- ウィンドウありの起動では、例外を捕まえていません。JavaFXのスレッドの既定の処理で、スタックトレースが出力されるだけです。画面には表示しません。
+- ウィンドウありの起動では、`App.start()`の冒頭で、FXスレッドの未捕捉例外のハンドラを登録します。ドロップ、ComboBoxの変更、ランダム変更、場所を開く、のどれで起きた例外も、このハンドラに届きます。
+  - `UnrecoverableException`なら、`AlertDialog.showError`で、そのメッセージのダイアログを出します。
+  - それ以外の例外はバグです。スタックトレースを標準エラー出力に書いてから、`AlertDialog.showUnexpectedError`で、スタックトレースのダイアログを出します。
+  - ダイアログを閉じても、アプリは続きます。
+- 起動時の`loadMonitors()`は`App.start()`の中で呼ぶので、例外がハンドラに届きません。そのため、`try/catch`で`UnrecoverableException`を捕まえて、同じダイアログを出します。ウィンドウは開いたままです。
 
 ## 関連する文書
 
