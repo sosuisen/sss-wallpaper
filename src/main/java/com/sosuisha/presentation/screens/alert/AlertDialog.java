@@ -7,6 +7,7 @@ import java.util.Objects;
 import io.github.sosuisen.jfxbuilder.controls.AlertBuilder;
 import io.github.sosuisen.jfxbuilder.controls.LabelBuilder;
 import io.github.sosuisen.jfxbuilder.controls.TextAreaBuilder;
+import javafx.scene.Node;
 import javafx.scene.control.Alert.AlertType;
 
 /**
@@ -26,18 +27,7 @@ public class AlertDialog {
      */
     public static void showError(String message) {
         Objects.requireNonNull(message, "message must not be null");
-        AlertBuilder.create(AlertType.ERROR)
-            .title("Error")
-            .headerText("An error occurred")
-            .apply(alert -> {
-                alert.getDialogPane()
-                    .setExpandableContent(
-                        LabelBuilder.create().text(message).wrapText(true).build()
-                    );
-                alert.getDialogPane().setExpanded(true);
-            })
-            .build()
-            .show();
+        show("An error occurred", LabelBuilder.create().text(message).wrapText(true).build());
     }
 
     /**
@@ -54,14 +44,18 @@ public class AlertDialog {
         Objects.requireNonNull(exception, "exception must not be null");
         var stackTrace = new StringWriter();
         exception.printStackTrace(new PrintWriter(stackTrace));
+        show(
+            "An unexpected error occurred",
+            TextAreaBuilder.create().text(stackTrace.toString()).editable(false).build()
+        );
+    }
+
+    private static void show(String headerText, Node details) {
         AlertBuilder.create(AlertType.ERROR)
             .title("Error")
-            .headerText("An unexpected error occurred")
+            .headerText(headerText)
             .apply(alert -> {
-                alert.getDialogPane()
-                    .setExpandableContent(
-                        TextAreaBuilder.create().text(stackTrace.toString()).editable(false).build()
-                    );
+                alert.getDialogPane().setExpandableContent(details);
                 alert.getDialogPane().setExpanded(true);
             })
             .build()
