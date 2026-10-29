@@ -33,3 +33,12 @@ jobs:
       # Stops at test, because package runs jpackage.
       - name: Compile with NullAway and run tests
         run: mvn -B clean test
+
+      # The reports are needed only to read why a test failed.
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 7
