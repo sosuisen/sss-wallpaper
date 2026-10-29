@@ -55,7 +55,13 @@ public class App extends Application {
         var monitorsViewModel = createMonitorsViewModel();
         windowManager.registerView(new MonitorsView(monitorsViewModel));
         windowManager.showWindow(FIRST_VIEW, stage);
-        monitorsViewModel.loadMonitors();
+        try {
+            monitorsViewModel.loadMonitors();
+        } catch (UnrecoverableException e) {
+            // An exception thrown out of start() does not reach the handler
+            // and stops the app, so the error is shown here.
+            showError(e);
+        }
     }
 
     private static void showError(Throwable e) {
