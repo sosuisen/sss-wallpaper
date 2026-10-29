@@ -48,14 +48,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         Objects.requireNonNull(stage, "stage must not be null");
-        Thread.currentThread().setUncaughtExceptionHandler((_, e) -> {
-            if (e instanceof UnrecoverableException unrecoverable) {
-                AlertDialog.showError(unrecoverable.getMessage());
-            } else {
-                e.printStackTrace();
-                AlertDialog.showUnexpectedError(e);
-            }
-        });
+        Thread.currentThread().setUncaughtExceptionHandler((_, e) -> showError(e));
         setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         stage.getIcons().add(new Image(App.class.getResource(ICON_RESOURCE).toExternalForm()));
         var windowManager = new WindowManager();
@@ -63,6 +56,15 @@ public class App extends Application {
         windowManager.registerView(new MonitorsView(monitorsViewModel));
         windowManager.showWindow(FIRST_VIEW, stage);
         monitorsViewModel.loadMonitors();
+    }
+
+    private static void showError(Throwable e) {
+        if (e instanceof UnrecoverableException unrecoverable) {
+            AlertDialog.showError(unrecoverable.getMessage());
+        } else {
+            e.printStackTrace();
+            AlertDialog.showUnexpectedError(e);
+        }
     }
 
     /**
