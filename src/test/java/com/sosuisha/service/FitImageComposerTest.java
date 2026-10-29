@@ -3,6 +3,7 @@ package com.sosuisha.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -34,8 +35,9 @@ class FitImageComposerTest {
     @Test
     @DisplayName("縦長の画像を横長のモニターへ左寄せでFitすると、画像は左端に置かれ、残りは白になる")
     void a_tall_image_fitted_left_on_a_wide_monitor_is_placed_at_the_left_edge_with_white_elsewhere() {
+        // The image is twice the monitor height, so it is shrunk to 50x100.
         var fitted =
-            FitImageComposer.fit(redImage(50, 100), 200, 100, Alignment.LEFT, FillColor.WHITE);
+            FitImageComposer.fit(redImage(100, 200), 200, 100, Alignment.LEFT, FillColor.WHITE);
 
         assertEquals(RED, fitted.getRGB(0, 50));
         assertEquals(RED, fitted.getRGB(48, 50));
@@ -46,8 +48,9 @@ class FitImageComposerTest {
     @Test
     @DisplayName("右寄せでFitすると、画像は右端に置かれ、残りは白になる")
     void an_image_fitted_right_is_placed_at_the_right_edge_with_white_elsewhere() {
+        // The image is twice the monitor height, so it is shrunk to 50x100.
         var fitted =
-            FitImageComposer.fit(redImage(50, 100), 200, 100, Alignment.RIGHT, FillColor.WHITE);
+            FitImageComposer.fit(redImage(100, 200), 200, 100, Alignment.RIGHT, FillColor.WHITE);
 
         assertEquals(WHITE, fitted.getRGB(0, 50));
         assertEquals(WHITE, fitted.getRGB(147, 50));
@@ -56,10 +59,11 @@ class FitImageComposerTest {
     }
 
     @Test
-    @DisplayName("横長の画像を縦長のモニターへFitすると、縦横比を保って上下中央に置かれる")
-    void a_wide_image_fitted_on_a_tall_monitor_keeps_its_aspect_ratio_and_is_centered_vertically() {
+    @DisplayName("横長の画像を縦長のモニターへFitすると、縦横比を保ったまま縮小され、上下中央に置かれる")
+    void a_wide_image_fitted_on_a_tall_monitor_is_shrunk_keeping_its_aspect_ratio_and_centered_vertically() {
+        // The image is twice the monitor width, so it is shrunk to 100x50.
         var fitted =
-            FitImageComposer.fit(redImage(100, 50), 100, 200, Alignment.LEFT, FillColor.WHITE);
+            FitImageComposer.fit(redImage(200, 100), 100, 200, Alignment.LEFT, FillColor.WHITE);
 
         assertEquals(WHITE, fitted.getRGB(50, 73));
         assertEquals(RED, fitted.getRGB(50, 77));
@@ -97,6 +101,21 @@ class FitImageComposerTest {
         try (var files = Files.list(tempDir.resolve("out"))) {
             assertEquals(List.of(second), files.toList());
         }
+    }
+
+    @Test
+    @DisplayName("ほかのモニターの合成画像は、新しい画像を作るときに削除されない")
+    void the_composed_image_of_another_monitor_is_not_deleted_when_a_new_one_is_made()
+        throws IOException {
+        var composer = new FitImageComposer(tempDir.resolve("out"));
+        var source = writeRedPng("source.png", 50, 100);
+        var other = composer.compose(
+            source, new Monitor("other", 200, 0, 200, 100), Alignment.LEFT, FillColor.WHITE
+        );
+
+        composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE);
+
+        assertTrue(Files.exists(other));
     }
 
     @Test

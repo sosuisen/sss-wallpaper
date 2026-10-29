@@ -119,7 +119,8 @@ public class MonitorsView implements View {
                 .preserveRatio(true)
                 .apply(thumbnail -> showWallpaper(thumbnail, monitor, size))
                 .build(),
-            LabelBuilder.create().text(String.valueOf(number)).style(LABEL_STYLE).build(),
+            LabelBuilder.create().id("number").text(String.valueOf(number)).style(LABEL_STYLE)
+                .build(),
             LabelBuilder.create()
                 .id("sourceName")
                 .style(LABEL_STYLE)
