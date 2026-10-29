@@ -181,7 +181,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.5.0</version>
+        <version>3.5.1</version>
         <configuration>
           <outputDirectory>${project.build.directory}/app</outputDirectory>
           <archive>
@@ -196,7 +196,7 @@
       <plugin>
         <groupId>org.panteleyev</groupId>
         <artifactId>jpackage-maven-plugin</artifactId>
-        <version>1.6.6</version>
+        <version>1.8.0</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -226,7 +226,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.4</version>
         <executions>
           <execution>
             <id>remove-readonly</id>
