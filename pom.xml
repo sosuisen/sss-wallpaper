@@ -92,9 +92,11 @@
                  internals; the add-exports options are in .mvn/jvm.config. -->
             <arg>-XDcompilePolicy=simple</arg>
             <arg>--should-stop=ifError=FLOW</arg>
-            <!-- Only NullAway runs. The built-in Error Prone checks are off.
+            <!-- The built-in Error Prone checks run with their default levels.
+                 Three checks that are off by default are turned on as warnings,
+                 and NullAway runs as an error.
                  The javac plugin arguments must be one argument. -->
-            <arg>-Xplugin:ErrorProne -XepDisableAllChecks -Xep:NullAway:ERROR -XepOpt:NullAway:JSpecifyMode=true -XepOpt:NullAway:AnnotatedPackages=com.sosuisha -XepOpt:NullAway:CustomInitializerAnnotations=org.testfx.framework.junit5.Start</arg>
+            <arg>-Xplugin:ErrorProne -Xep:FieldCanBeFinal:WARN -Xep:MethodCanBeStatic:WARN -Xep:PrivateConstructorForUtilityClass:WARN -Xep:NullAway:ERROR -XepOpt:NullAway:JSpecifyMode=true -XepOpt:NullAway:AnnotatedPackages=com.sosuisha -XepOpt:NullAway:CustomInitializerAnnotations=org.testfx.framework.junit5.Start</arg>
           </compilerArgs>
           <annotationProcessorPaths>
             <path>
