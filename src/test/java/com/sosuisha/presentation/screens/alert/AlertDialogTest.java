@@ -1,6 +1,7 @@
 package com.sosuisha.presentation.screens.alert;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,6 +17,7 @@ import atlantafx.base.theme.PrimerLight;
 import javafx.application.Application;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
 @ExtendWith(ApplicationExtension.class)
@@ -37,5 +39,20 @@ class AlertDialogTest {
         assertTrue(pane.isExpanded());
         var content = assertInstanceOf(Label.class, pane.getExpandableContent());
         assertEquals("The settings file cannot be read.", content.getText());
+    }
+
+    @Test
+    @DisplayName("想定外のエラーのダイアログには、例外のスタックトレースが読み取り専用で表示され、初期状態で展開されている")
+    void the_unexpected_error_dialog_shows_the_stack_trace_read_only_and_expanded(FxRobot robot) {
+        var exception = new IllegalStateException("boom");
+
+        robot.interact(() -> AlertDialog.showUnexpectedError(exception));
+
+        var pane = robot.lookup(".dialog-pane").queryAs(DialogPane.class);
+        assertTrue(pane.isExpanded());
+        var details = assertInstanceOf(TextArea.class, pane.getExpandableContent());
+        assertFalse(details.isEditable());
+        assertTrue(details.getText().startsWith("java.lang.IllegalStateException: boom"));
+        assertTrue(details.getText().contains("AlertDialogTest"));
     }
 }
