@@ -1,0 +1,9 @@
+# Layout hints for docs/classdiagram.svg.
+
+# App is the composition root and uses every implementation.
+# Its arrows cross the whole diagram and hide the other relations.
+omit arrows of App
+
+# Launcher only starts the app, so its arrows also cross the diagram
+# without telling much.
+omit arrows of Launcher

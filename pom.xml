@@ -153,7 +153,7 @@
       <plugin>
         <groupId>com.sosuisha</groupId>
         <artifactId>classdiagram-maven-plugin</artifactId>
-        <version>1.0.1</version>
+        <version>1.1.0</version>
         <configuration>
           <packageName>com.sosuisha</packageName>
           <picturesque>true</picturesque>
@@ -162,7 +162,9 @@
           <edgeColor>#661d00</edgeColor>
           <interfaceFillColor>#c4ffee</interfaceFillColor>
           <classFillColor>#ecffc4</classFillColor>
-          <outputFile>${project.basedir}/docs/classdiagram.svg</outputFile>        </configuration>
+          <outputFile>${project.basedir}/docs/classdiagram.svg</outputFile>
+          <intentionFile>${project.basedir}/classdiagram.intention</intentionFile>
+        </configuration>
         <!-- Draws docs/classdiagram.svg in the compile phase, after the compiler. -->
         <executions>
           <execution>
