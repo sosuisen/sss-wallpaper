@@ -149,6 +149,29 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>com.sosuisha</groupId>
+        <artifactId>classdiagram-maven-plugin</artifactId>
+        <version>1.0.1</version>
+        <configuration>
+          <packageName>com.sosuisha</packageName>
+          <picturesque>true</picturesque>
+          <packageStrokeColor>#79754d</packageStrokeColor>
+          <packageFillColor>#ebdfc7</packageFillColor>
+          <edgeColor>#661d00</edgeColor>
+          <interfaceFillColor>#c4ffee</interfaceFillColor>
+          <classFillColor>#ecffc4</classFillColor>
+          <outputFile>${project.basedir}/docs/classdiagram.svg</outputFile>        </configuration>
+        <!-- Draws docs/classdiagram.svg in the compile phase, after the compiler. -->
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-maven-plugin</artifactId>
         <version>${javafx.plugin.version}</version>
