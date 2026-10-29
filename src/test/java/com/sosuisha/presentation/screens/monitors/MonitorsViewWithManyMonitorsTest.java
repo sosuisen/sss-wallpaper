@@ -15,7 +15,7 @@ import org.testfx.framework.junit5.Start;
 import com.sosuisha.domain.model.Monitor;
 import com.sosuisha.domain.repository.NullMonitorSettingsRepository;
 import com.sosuisha.domain.service.NullFolderOpener;
-import com.sosuisha.domain.service.NullImageComposer;
+import com.sosuisha.domain.service.NullWallpaperChanger;
 import com.sosuisha.domain.service.NullWallpaperService;
 import com.sosuisha.presentation.WindowManager;
 
@@ -43,7 +43,7 @@ class MonitorsViewWithManyMonitorsTest {
             }
         };
         var viewModel = new MonitorsViewModel(
-            service, new NullImageComposer(), _ -> Optional.empty(),
+            service, new NullWallpaperChanger(), _ -> Optional.empty(),
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
         var windowManager = new WindowManager();

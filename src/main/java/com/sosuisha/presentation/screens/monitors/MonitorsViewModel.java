@@ -17,8 +17,8 @@ import com.sosuisha.domain.model.Monitor;
 import com.sosuisha.domain.model.MonitorSettings;
 import com.sosuisha.domain.repository.MonitorSettingsRepository;
 import com.sosuisha.domain.service.FolderOpener;
-import com.sosuisha.domain.service.ImageComposer;
 import com.sosuisha.domain.service.ImagePicker;
+import com.sosuisha.domain.service.WallpaperChanger;
 import com.sosuisha.domain.service.WallpaperService;
 
 import javafx.beans.binding.Bindings;
@@ -41,7 +41,7 @@ public class MonitorsViewModel {
     private static final double MAX_SCALE = 1.0 / 8;
 
     private final WallpaperService wallpaperService;
-    private final ImageComposer imageComposer;
+    private final WallpaperChanger wallpaperChanger;
     private final ImagePicker imagePicker;
     private final MonitorSettingsRepository settingsRepository;
     private final FolderOpener folderOpener;
@@ -65,20 +65,21 @@ public class MonitorsViewModel {
     /**
      * Creates the view model.
      *
-     * @param wallpaperService   service that reads the monitors and sets the wallpapers
-     * @param imageComposer      composer that fits a dropped image in a monitor
+     * @param wallpaperService   service that reads the monitors and their current wallpapers
+     * @param wallpaperChanger   changer that makes and sets the wallpapers
      * @param imagePicker        picker that chooses an image from a dropped folder
      * @param settingsRepository repository of the settings of each monitor
      * @param folderOpener       opener that shows the location of a wallpaper source
      * @throws NullPointerException if any argument is null
      */
     public MonitorsViewModel(
-        WallpaperService wallpaperService, ImageComposer imageComposer, ImagePicker imagePicker,
+        WallpaperService wallpaperService, WallpaperChanger wallpaperChanger,
+        ImagePicker imagePicker,
         MonitorSettingsRepository settingsRepository, FolderOpener folderOpener) {
         this.wallpaperService =
             Objects.requireNonNull(wallpaperService, "wallpaperService must not be null");
-        this.imageComposer =
-            Objects.requireNonNull(imageComposer, "imageComposer must not be null");
+        this.wallpaperChanger =
+            Objects.requireNonNull(wallpaperChanger, "wallpaperChanger must not be null");
         this.imagePicker = Objects.requireNonNull(imagePicker, "imagePicker must not be null");
         this.settingsRepository =
             Objects.requireNonNull(settingsRepository, "settingsRepository must not be null");
@@ -260,24 +261,12 @@ public class MonitorsViewModel {
      * Changes the wallpaper of every connected monitor that has a registered
      * folder. Each monitor gets an image picked at random from its own folder.
      * A monitor without a folder, or with a folder that has no image, keeps
-     * its wallpaper. The picked images are saved as the source images.
+     * its wallpaper. The picked images become the source images.
      */
     public void randomizeAll() {
-        var picked = new HashMap<Monitor, Path>();
-        for (var monitor : monitors) {
-            folder(monitor.id()).get()
-                .flatMap(imagePicker::pick)
-                .ifPresent(image -> picked.put(monitor, image));
-        }
-        if (picked.isEmpty()) { return; }
-        picked.forEach((monitor, image) -> sourceImage(monitor.id()).set(Optional.of(image)));
-        saveSettings();
-        // In the order of the frames, so the monitors change from left to right.
-        for (var monitor : monitors) {
-            var image = picked.get(monitor);
-            if (image != null) {
-                applyWallpaper(monitor, image);
-            }
+        for (var change : wallpaperChanger.randomizeAll()) {
+            sourceImage(change.monitorId()).set(Optional.of(change.source()));
+            wallpaper(change.monitorId()).set(Optional.of(change.wallpaper()));
         }
     }
 
@@ -373,10 +362,9 @@ public class MonitorsViewModel {
     }
 
     private void applyWallpaper(Monitor monitor, Path image) {
-        var composed = imageComposer.compose(
-            image, monitor, alignment(monitor.id()).get(), fillColor(monitor.id()).get()
+        var changed = wallpaperChanger.change(
+            monitor, image, alignment(monitor.id()).get(), fillColor(monitor.id()).get()
         );
-        wallpaperService.setWallpaper(monitor.id(), composed);
-        wallpaper(monitor.id()).set(Optional.of(composed));
+        wallpaper(monitor.id()).set(Optional.of(changed));
     }
 }

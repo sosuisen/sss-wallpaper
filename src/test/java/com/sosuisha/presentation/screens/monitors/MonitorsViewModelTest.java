@@ -18,12 +18,17 @@ import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;
 import com.sosuisha.domain.model.Monitor;
 import com.sosuisha.domain.model.MonitorSettings;
+import com.sosuisha.domain.model.WallpaperChange;
+import com.sosuisha.domain.repository.MonitorSettingsRepository;
 import com.sosuisha.domain.repository.NullMonitorSettingsRepository;
+import com.sosuisha.domain.service.FolderOpener;
 import com.sosuisha.domain.service.ImageComposer;
 import com.sosuisha.domain.service.ImagePicker;
 import com.sosuisha.domain.service.NullFolderOpener;
+import com.sosuisha.domain.service.NullWallpaperChanger;
 import com.sosuisha.domain.service.NullWallpaperService;
 import com.sosuisha.domain.service.WallpaperService;
+import com.sosuisha.service.ComposingWallpaperChanger;
 
 class MonitorsViewModelTest {
     private static final Monitor LEFT_MONITOR = new Monitor("left", 0, 0, 1920, 1080);
@@ -55,7 +60,7 @@ class MonitorsViewModelTest {
                 );
             }
         };
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository(),
             new NullFolderOpener()
         );
@@ -70,7 +75,7 @@ class MonitorsViewModelTest {
     @DisplayName("ドロップすると、モニターの大きさと寄せ方で合成した画像が壁紙に設定される")
     void dropping_an_image_sets_the_image_composed_for_the_monitor_size_and_alignment() {
         var wallpapers = new ArrayList<String>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -84,7 +89,7 @@ class MonitorsViewModelTest {
     @DisplayName("画像ではないファイルだけがドロップされたとき、壁紙は変わらない")
     void dropping_only_non_image_files_does_not_change_the_wallpaper() {
         var wallpapers = new ArrayList<String>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -97,7 +102,7 @@ class MonitorsViewModelTest {
     @Test
     @DisplayName("寄せ方の既定は左寄せである")
     void the_default_alignment_is_left() {
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -109,7 +114,7 @@ class MonitorsViewModelTest {
     @DisplayName("寄せ方を変えると、最後にドロップした画像で壁紙が作り直される")
     void changing_the_alignment_remakes_the_wallpaper_from_the_last_dropped_image() {
         var wallpapers = new ArrayList<String>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -125,7 +130,7 @@ class MonitorsViewModelTest {
     @DisplayName("ドロップする前に寄せ方を変えても、壁紙は変わらない")
     void changing_the_alignment_before_any_drop_does_not_change_the_wallpaper() {
         var wallpapers = new ArrayList<String>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -143,7 +148,7 @@ class MonitorsViewModelTest {
         var saved = new ArrayList<Map<String, MonitorSettings>>();
         var repository = savingRepository(saved);
         var viewModel =
-            new MonitorsViewModel(
+            viewModel(
                 new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, repository,
                 new NullFolderOpener()
             );
@@ -164,7 +169,7 @@ class MonitorsViewModelTest {
         var folder = Files.createDirectory(tempDir.resolve("photos.png"));
         var wallpapers = new ArrayList<String>();
         ImagePicker picker = from -> Optional.of(from.resolve("picked.jpg"));
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers), NAMING_COMPOSER, picker,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -180,7 +185,7 @@ class MonitorsViewModelTest {
         throws IOException {
         var folder = Files.createDirectory(tempDir.resolve("empty"));
         var wallpapers = new ArrayList<String>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -197,7 +202,7 @@ class MonitorsViewModelTest {
         throws IOException {
         var folder = Files.createDirectory(tempDir.resolve("photos"));
         var saved = new ArrayList<Map<String, MonitorSettings>>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG, savingRepository(saved),
             new NullFolderOpener()
         );
@@ -217,7 +222,7 @@ class MonitorsViewModelTest {
     @DisplayName("フォルダを登録した枠には、フォルダの名前が表示される")
     void a_frame_with_a_folder_shows_the_name_of_the_folder() throws IOException {
         var folder = Files.createDirectory(tempDir.resolve("cats"));
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -232,7 +237,7 @@ class MonitorsViewModelTest {
     void dropping_an_image_on_a_frame_with_a_folder_shows_the_file_name_of_the_image()
         throws IOException {
         var folder = Files.createDirectory(tempDir.resolve("cats"));
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -247,7 +252,7 @@ class MonitorsViewModelTest {
     @Test
     @DisplayName("フォルダも画像もない枠には、何も表示されない")
     void a_frame_without_a_folder_or_an_image_shows_nothing() {
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -259,7 +264,7 @@ class MonitorsViewModelTest {
     @DisplayName("ドライブのルートを登録した枠には、ルートのパスが表示される")
     void a_frame_with_a_drive_root_shows_the_path_of_the_root() {
         var root = tempDir.getRoot();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -288,7 +293,7 @@ class MonitorsViewModelTest {
             )
         );
         var viewModel =
-            new MonitorsViewModel(
+            viewModel(
                 service, NAMING_COMPOSER, NO_IMAGE_PICKER, repository, new NullFolderOpener()
             );
 
@@ -345,7 +350,7 @@ class MonitorsViewModelTest {
                 return Optional.of(Path.of(monitorId + "-wallpaper.jpg"));
             }
         };
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository(),
             new NullFolderOpener()
         );
@@ -386,7 +391,7 @@ class MonitorsViewModelTest {
     @DisplayName("画像をドロップすると、元の画像と寄せ方がモニターの設定として保存される")
     void dropping_an_image_saves_the_source_image_and_the_alignment_as_the_settings_of_the_monitor() {
         var saved = new ArrayList<Map<String, MonitorSettings>>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, savingRepository(saved),
             new NullFolderOpener()
         );
@@ -405,7 +410,7 @@ class MonitorsViewModelTest {
     @DisplayName("寄せ方を変えると、その寄せ方が保存される")
     void changing_the_alignment_saves_the_alignment() {
         var saved = new ArrayList<Map<String, MonitorSettings>>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, savingRepository(saved),
             new NullFolderOpener()
         );
@@ -439,7 +444,7 @@ class MonitorsViewModelTest {
                 saved.add(settings);
             }
         };
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers, LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER,
             repository, new NullFolderOpener()
         );
@@ -463,7 +468,7 @@ class MonitorsViewModelTest {
                 )
             )
         );
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers, LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER,
             repository, new NullFolderOpener()
         );
@@ -477,7 +482,7 @@ class MonitorsViewModelTest {
     @Test
     @DisplayName("埋める色の初期値は白である")
     void the_default_fill_color_is_white() {
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -497,7 +502,7 @@ class MonitorsViewModelTest {
                 )
             )
         );
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers, LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER,
             repository, new NullFolderOpener()
         );
@@ -512,7 +517,7 @@ class MonitorsViewModelTest {
     @DisplayName("埋める色を変えると、その色が保存される")
     void changing_the_fill_color_saves_the_fill_color() {
         var saved = new ArrayList<Map<String, MonitorSettings>>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER, savingRepository(saved),
             new NullFolderOpener()
         );
@@ -535,7 +540,7 @@ class MonitorsViewModelTest {
                 )
             )
         );
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(new ArrayList<>(), LEFT_MONITOR), NAMING_COMPOSER, NO_IMAGE_PICKER,
             repository, new NullFolderOpener()
         );
@@ -550,7 +555,7 @@ class MonitorsViewModelTest {
     void opening_the_location_of_a_monitor_with_a_folder_opens_the_folder() throws IOException {
         var folder = Files.createDirectory(tempDir.resolve("photos"));
         var opened = new ArrayList<Path>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, PICK_RANDOM_PNG,
             new NullMonitorSettingsRepository(), opened::add
         );
@@ -565,7 +570,7 @@ class MonitorsViewModelTest {
     @DisplayName("画像をドロップしたモニターの場所を開くと、画像のあるフォルダが開かれる")
     void opening_the_location_of_a_monitor_with_an_image_opens_the_folder_of_the_image() {
         var opened = new ArrayList<Path>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), opened::add
         );
@@ -580,7 +585,7 @@ class MonitorsViewModelTest {
     @DisplayName("フォルダも画像もないモニターの場所を開いても、何も開かれない")
     void opening_the_location_of_a_monitor_without_a_folder_or_an_image_opens_nothing() {
         var opened = new ArrayList<Path>();
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), opened::add
         );
@@ -593,7 +598,7 @@ class MonitorsViewModelTest {
     @Test
     @DisplayName("フォルダも画像もないモニターは場所を開けず、画像をドロップすると開けるようになる")
     void the_location_can_be_opened_only_after_the_monitor_gets_a_folder_or_an_image() {
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             new NullWallpaperService(), NAMING_COMPOSER, NO_IMAGE_PICKER,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
@@ -630,7 +635,7 @@ class MonitorsViewModelTest {
     void randomizing_sets_an_image_picked_from_its_own_folder_on_every_monitor_with_a_folder() {
         var wallpapers = new ArrayList<String>();
         var right = new Monitor("right", 1920, 0, 1080, 1920);
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers, LEFT_MONITOR, right), NAMING_COMPOSER, PICK_RANDOM_PNG,
             loadingRepository(
                 Map.of(
@@ -655,7 +660,7 @@ class MonitorsViewModelTest {
     void randomizing_does_not_change_the_wallpaper_of_a_monitor_without_a_folder() {
         var wallpapers = new ArrayList<String>();
         var right = new Monitor("right", 1920, 0, 1080, 1920);
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(wallpapers, LEFT_MONITOR, right), NAMING_COMPOSER, PICK_RANDOM_PNG,
             loadingRepository(Map.of("right", folderSettings("right-photos"))),
             new NullFolderOpener()
@@ -682,7 +687,7 @@ class MonitorsViewModelTest {
                 saved.add(settings);
             }
         };
-        var viewModel = new MonitorsViewModel(
+        var viewModel = viewModel(
             recordingService(new ArrayList<>(), LEFT_MONITOR), NAMING_COMPOSER, PICK_RANDOM_PNG,
             repository, new NullFolderOpener()
         );
@@ -694,6 +699,33 @@ class MonitorsViewModelTest {
             Optional.of(Path.of("photos", "random.png")),
             saved.getLast().getOrDefault("left", MonitorSettings.DEFAULT).image()
         );
+    }
+
+    @Test
+    @DisplayName("ランダム変更すると、変わったモニターの現在の壁紙と元の画像の名前が更新される")
+    void randomizing_updates_the_current_wallpaper_and_the_source_name_of_the_changed_monitor() {
+        var changer = new NullWallpaperChanger() {
+            @Override
+            public List<WallpaperChange> randomizeAll() {
+                return List.of(
+                    new WallpaperChange(
+                        "left", Path.of("photos", "cat.png"), Path.of("composed-cat.png")
+                    )
+                );
+            }
+        };
+        var viewModel = new MonitorsViewModel(
+            new NullWallpaperService(), changer, NO_IMAGE_PICKER,
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
+        );
+
+        viewModel.randomizeAll();
+
+        assertEquals(
+            Optional.of(Path.of("composed-cat.png")),
+            viewModel.wallpaperProperty(LEFT_MONITOR).get()
+        );
+        assertEquals("cat.png", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
     }
 
     private static MonitorSettings folderSettings(String folder) {
@@ -723,7 +755,7 @@ class MonitorsViewModelTest {
                 return List.of(monitors);
             }
         };
-        return new MonitorsViewModel(
+        return viewModel(
             service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository(),
             new NullFolderOpener()
         );
@@ -736,5 +768,15 @@ class MonitorsViewModelTest {
                 wallpapers.add(monitorId + ":" + image);
             }
         };
+    }
+
+    // Uses the real changer, so the tests see what the view model makes the services do.
+    private static MonitorsViewModel viewModel(
+        WallpaperService service, ImageComposer composer, ImagePicker picker,
+        MonitorSettingsRepository repository, FolderOpener opener) {
+        return new MonitorsViewModel(
+            service, new ComposingWallpaperChanger(service, composer, picker, repository), picker,
+            repository, opener
+        );
     }
 }

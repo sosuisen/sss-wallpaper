@@ -21,9 +21,11 @@ import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;
 import com.sosuisha.domain.model.MonitorSettings;
 import com.sosuisha.domain.repository.NullMonitorSettingsRepository;
+import com.sosuisha.domain.service.ImagePicker;
 import com.sosuisha.domain.service.NullImageComposer;
 import com.sosuisha.domain.service.NullWallpaperService;
 import com.sosuisha.presentation.WindowManager;
+import com.sosuisha.service.ComposingWallpaperChanger;
 
 import atlantafx.base.theme.PrimerLight;
 
@@ -74,9 +76,11 @@ class MonitorsViewTest {
                 );
             }
         };
+        ImagePicker picker = folder -> Optional.of(folder.resolve("random.png"));
         viewModel = new MonitorsViewModel(
-            service, new NullImageComposer(),
-            folder -> Optional.of(folder.resolve("random.png")), repository, openedFolders::add
+            service,
+            new ComposingWallpaperChanger(service, new NullImageComposer(), picker, repository),
+            picker, repository, openedFolders::add
         );
         var windowManager = new WindowManager();
         windowManager.registerView(new MonitorsView(viewModel));

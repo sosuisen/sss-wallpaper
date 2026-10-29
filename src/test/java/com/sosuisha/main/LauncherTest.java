@@ -4,24 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.sosuisha.domain.model.Alignment;
-import com.sosuisha.domain.model.FillColor;
-import com.sosuisha.domain.model.Monitor;
-import com.sosuisha.domain.model.MonitorSettings;
-import com.sosuisha.domain.repository.NullMonitorSettingsRepository;
-import com.sosuisha.domain.service.NullFolderOpener;
-import com.sosuisha.domain.service.NullImageComposer;
-import com.sosuisha.domain.service.NullWallpaperService;
-import com.sosuisha.presentation.screens.monitors.MonitorsViewModel;
+import com.sosuisha.domain.model.WallpaperChange;
+import com.sosuisha.domain.service.NullWallpaperChanger;
 
 class LauncherTest {
     @Test
@@ -37,39 +27,19 @@ class LauncherTest {
     }
 
     @Test
-    @DisplayName("ウィンドウなしの起動では、モニター一覧と設定を読み込んでから、全モニターの壁紙を登録フォルダからランダムに変える")
-    void starting_without_a_window_loads_the_monitors_and_settings_and_randomizes_all_wallpapers() {
-        var wallpapers = new ArrayList<String>();
-        var service = new NullWallpaperService() {
+    @DisplayName("ウィンドウなしの起動では、全モニターの壁紙を登録フォルダからランダムに変える")
+    void starting_without_a_window_randomizes_all_wallpapers() {
+        var randomized = new ArrayList<String>();
+        var changer = new NullWallpaperChanger() {
             @Override
-            public List<Monitor> listMonitors() {
-                return List.of(new Monitor("left", 0, 0, 1920, 1080));
-            }
-
-            @Override
-            public void setWallpaper(String monitorId, Path image) {
-                wallpapers.add(monitorId + ":" + image);
+            public List<WallpaperChange> randomizeAll() {
+                randomized.add("all");
+                return List.of();
             }
         };
-        var repository = new NullMonitorSettingsRepository() {
-            @Override
-            public Map<String, MonitorSettings> load() {
-                return Map.of(
-                    "left",
-                    new MonitorSettings(
-                        Optional.of(Path.of("photos")), Optional.empty(), Alignment.LEFT,
-                        FillColor.WHITE
-                    )
-                );
-            }
-        };
-        var viewModel = new MonitorsViewModel(
-            service, new NullImageComposer(), folder -> Optional.of(folder.resolve("random.png")),
-            repository, new NullFolderOpener()
-        );
 
-        Launcher.randomizeWithoutWindow(viewModel);
+        Launcher.randomizeWithoutWindow(changer);
 
-        assertEquals(List.of("left:" + Path.of("photos", "random.png")), wallpapers);
+        assertEquals(List.of("all"), randomized);
     }
 }
