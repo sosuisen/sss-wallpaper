@@ -1,7 +1,6 @@
 package com.sosuisha.service;
 
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +82,7 @@ public class ComposingWallpaperChanger implements WallpaperChanger {
     }
 
     private static List<Monitor> leftToRight(List<Monitor> monitors) {
-        return monitors.stream().sorted(Comparator.comparingInt(Monitor::x)).toList();
+        return monitors.stream().sorted(Monitor.LEFT_TO_RIGHT).toList();
     }
 
     private List<Pick> pickImages(List<Monitor> monitors, Map<String, MonitorSettings> settings) {

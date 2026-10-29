@@ -2,7 +2,6 @@ package com.sosuisha.presentation.screens.monitors;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -208,7 +207,7 @@ public class MonitorsViewModel {
      */
     public void loadMonitors() {
         var loaded = wallpaperService.listMonitors().stream()
-            .sorted(Comparator.comparingInt(Monitor::x))
+            .sorted(Monitor.LEFT_TO_RIGHT)
             .toList();
         for (var monitor : loaded) {
             knownMonitors.put(monitor.id(), monitor);

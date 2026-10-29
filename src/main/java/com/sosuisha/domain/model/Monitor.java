@@ -1,5 +1,6 @@
 package com.sosuisha.domain.model;
 
+import java.util.Comparator;
 import java.util.Objects;
 
 /**
@@ -12,6 +13,9 @@ import java.util.Objects;
  * @param height height in pixels
  */
 public record Monitor(String id, int x, int y, int width, int height) {
+    /** Order of the monitors from left to right on the virtual desktop. */
+    public static final Comparator<Monitor> LEFT_TO_RIGHT = Comparator.comparingInt(Monitor::x);
+
     /**
      * Creates a monitor.
      *
