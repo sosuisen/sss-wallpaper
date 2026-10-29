@@ -116,8 +116,11 @@
                one JavaFX toolkit per JVM, so in-JVM parallelism is not safe. -->
           <forkCount>1C</forkCount>
           <reuseForks>true</reuseForks>
-          <!-- DesktopWallpaperService calls restricted FFM methods. -->
-          <argLine>--enable-native-access=ALL-UNNAMED</argLine>
+          <!-- DesktopWallpaperService calls restricted FFM methods.
+               JavaFX extracts its DLLs into a shared cache on first use. Forks
+               that extract at the same time break each other's DLLs, so each
+               fork gets its own cache. -->
+          <argLine>--enable-native-access=ALL-UNNAMED -Djavafx.cachedir=${project.build.directory}/javafx-cache/${surefire.forkNumber}</argLine>
           <excludedGroups>${test.excludedGroups}</excludedGroups>
           <groups>${test.groups}</groups>
           <systemPropertyVariables>
