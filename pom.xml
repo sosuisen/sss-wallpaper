@@ -14,6 +14,9 @@
     <javafx.builder.version>27.0.0</javafx.builder.version>
     <maven.compiler.release>25</maven.compiler.release>
     <main.class>com.sosuisha.main.Launcher</main.class>
+    <!-- Version of the exe. The release workflow overrides it with the Git tag,
+         so this default is used only by local builds. -->
+    <app.version>1.0.0</app.version>
     <jspecify.version>1.0.1</jspecify.version>
     <atlantafx.version>3.0.0</atlantafx.version>
     <errorprone.version>2.51.0</errorprone.version>
@@ -204,7 +207,7 @@
         </executions>
         <configuration>
           <name>sss-wallpaper</name>
-          <appVersion>1.0.0</appVersion>
+          <appVersion>${app.version}</appVersion>
           <vendor>${project.groupId}</vendor>
           <input>${project.build.directory}/app/</input>
           <mainJar>${project.artifactId}-${project.version}.jar</mainJar>
