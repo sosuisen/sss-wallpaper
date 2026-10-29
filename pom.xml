@@ -133,6 +133,14 @@
           <configFile>${project.basedir}/styles_for_jfxbuilder.xml</configFile>
           <lineEnding>LF</lineEnding>
         </configuration>
+        <!-- Formats the sources in process-sources, before every compile. -->
+        <executions>
+          <execution>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.openjfx</groupId>
