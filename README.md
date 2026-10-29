@@ -98,6 +98,8 @@ mvn test
 mvn test -Pdesktop
 ```
 
+`mvn test`を実行すると、JaCoCoでコードカバレッジも測ります。レポートは`target/site/jacoco/index.html`に出力されます。OSのAPIを直接呼ぶクラスと起動用のクラスは、測定から外しています。対象のクラスは`pom.xml`に書いてあります。
+
 ## 実行ファイルを作る
 
 ```bash

@@ -1,12 +1,12 @@
 package com.sosuisha.presentation.screens.monitors;
 
-import java.io.File;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
 import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;
 import com.sosuisha.domain.model.Monitor;
+import com.sosuisha.presentation.FileDrop;
 import com.sosuisha.presentation.View;
 
 import atlantafx.base.theme.Styles;
@@ -27,8 +27,6 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.HeaderBar;
 import javafx.scene.layout.Region;
@@ -172,8 +170,7 @@ public class MonitorsView implements View {
             .apply(frame -> frame.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE))
             .style("-fx-border-color: -color-border-default; -fx-border-width: 2;")
             .userData(monitor)
-            .onDragOver(MonitorsView::acceptFiles)
-            .onDragDropped(event -> dropFiles(monitor, event))
+            .apply(frame -> FileDrop.install(frame, files -> viewModel.dropFiles(monitor, files)))
             .build();
     }
 
@@ -191,21 +188,5 @@ public class MonitorsView implements View {
                     .orElse(null)
             )
         );
-    }
-
-    private static void acceptFiles(DragEvent event) {
-        if (event.getDragboard().hasFiles()) {
-            event.acceptTransferModes(TransferMode.COPY);
-        }
-        event.consume();
-    }
-
-    private void dropFiles(Monitor monitor, DragEvent event) {
-        var dragboard = event.getDragboard();
-        if (dragboard.hasFiles()) {
-            viewModel.dropFiles(monitor, dragboard.getFiles().stream().map(File::toPath).toList());
-        }
-        event.setDropCompleted(dragboard.hasFiles());
-        event.consume();
     }
 }

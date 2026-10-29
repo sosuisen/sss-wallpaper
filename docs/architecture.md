@@ -33,7 +33,7 @@ sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJav
 | `domain.exception` | ドメイン例外 | `UnrecoverableException`と、その子の`WallpaperException`、`ImageComposeException`、`FolderReadException`、`FolderOpenException`、`RepositoryException` |
 | `service` | サービスの実装 | `ComposingWallpaperChanger`、`DesktopWallpaperService`、`HResult`、`FitImageComposer`、`RandomImagePicker`、`ExplorerFolderOpener` |
 | `repository` | リポジトリの実装 | `PropertiesMonitorSettingsRepository` |
-| `presentation` | 画面の共通部品 | `View`、`WindowManager` |
+| `presentation` | 画面の共通部品 | `View`、`WindowManager`、`FileDrop`（ファイルのドロップを受け取る） |
 | `presentation.screens.alert` | 共通のダイアログ | `AlertDialog`（エラーダイアログ） |
 | `presentation.screens.monitors` | モニターの一覧の画面 | `MonitorsView`、`MonitorsViewModel`、`FrameSize`（枠の大きさ） |
 | `main` | 起動とコンポジションルート | `Launcher`（`main`メソッド）、`App`（`Application`の子クラス） |
@@ -117,7 +117,7 @@ Windowsの「Fit」は、画像を常に中央に置きます。左寄せや右�
 
 ### 画像やフォルダのドロップ
 
-`MonitorsView`が、枠に落とされたファイルを`MonitorsViewModel.dropFiles`に渡します。
+`MonitorsView`は、`FileDrop`を使って、枠でファイルのドロップを受け取ります。落とされたファイルは`MonitorsViewModel.dropFiles`に渡します。
 
 - **フォルダのとき：** そのモニターのフォルダとして登録します。`RandomImagePicker`がフォルダの直下から画像を1枚選びます。設定を保存してから、その画像で壁紙を作ります。画像がなければ、壁紙は変えません。
 - **画像のとき：** フォルダの登録を外します。設定を保存してから、その画像で壁紙を作ります。

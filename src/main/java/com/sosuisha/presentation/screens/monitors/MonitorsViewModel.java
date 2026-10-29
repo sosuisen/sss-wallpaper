@@ -271,7 +271,8 @@ public class MonitorsViewModel {
 
     private static double scaleToFit(List<Monitor> monitors) {
         int totalWidth = monitors.stream().mapToInt(Monitor::width).sum();
-        return totalWidth == 0 ? MAX_SCALE : Math.min(MAX_SCALE, MAX_FRAMES_WIDTH / totalWidth);
+        // Without monitors, the division gives Infinity and MAX_SCALE is used.
+        return Math.min(MAX_SCALE, MAX_FRAMES_WIDTH / totalWidth);
     }
 
     private void restoreSettings(Map<String, MonitorSettings> saved) {
@@ -322,10 +323,10 @@ public class MonitorsViewModel {
             setting.subscribe((_, _) -> {
                 if (restoring) { return; }
                 saveSettings();
-                var monitor = knownMonitors.get(monitorId);
-                if (monitor != null) {
-                    sourceImage(monitorId).get().ifPresent(image -> applyWallpaper(monitor, image));
-                }
+                // Only the methods that take a Monitor change a setting, and
+                // they register the monitor first.
+                var monitor = Objects.requireNonNull(knownMonitors.get(monitorId));
+                sourceImage(monitorId).get().ifPresent(image -> applyWallpaper(monitor, image));
             });
             return setting;
         });

@@ -25,6 +25,9 @@
     <!-- Tests tagged "desktop" change the real wallpaper. Run them with -Pdesktop. -->
     <test.excludedGroups>desktop</test.excludedGroups>
     <test.groups></test.groups>
+    <!-- JaCoCo sets argLine to its agent. The empty default keeps
+         @{argLine} in surefire valid when JaCoCo does not run. -->
+    <argLine></argLine>
   </properties>
 
   <dependencies>
@@ -125,13 +128,51 @@
                JavaFX extracts its DLLs into a shared cache on first use. Forks
                that extract at the same time break each other's DLLs, so each
                fork gets its own cache. -->
-          <argLine>--enable-native-access=ALL-UNNAMED -Djavafx.cachedir=${project.build.directory}/javafx-cache/${surefire.forkNumber}</argLine>
+          <argLine>@{argLine} --enable-native-access=ALL-UNNAMED -Djavafx.cachedir=${project.build.directory}/javafx-cache/${surefire.forkNumber}</argLine>
           <excludedGroups>${test.excludedGroups}</excludedGroups>
           <groups>${test.groups}</groups>
           <systemPropertyVariables>
             <glass.platform>Headless</glass.platform>
           </systemPropertyVariables>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.16</version>
+        <configuration>
+          <excludes>
+            <!-- Calls the COM API of Windows and changes the real wallpaper.
+                 Only the tests tagged "desktop" run it. -->
+            <exclude>com/sosuisha/service/DesktopWallpaperService*</exclude>
+            <!-- Starts Explorer, so the normal tests cannot run it. -->
+            <exclude>com/sosuisha/service/ExplorerFolderOpener*</exclude>
+            <!-- Only ExplorerFolderOpener, which is excluded, throws it. -->
+            <exclude>com/sosuisha/domain/exception/FolderOpenException*</exclude>
+            <!-- The tests cannot make the drag events with files. -->
+            <exclude>com/sosuisha/presentation/FileDrop*</exclude>
+            <!-- The entry point. It starts the app or changes the real wallpaper. -->
+            <exclude>com/sosuisha/main/Launcher*</exclude>
+            <!-- The composition root. It wires the real services. -->
+            <exclude>com/sosuisha/main/App*</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <!-- Adds the agent that records the coverage to the test JVMs. -->
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <!-- Writes the HTML report to target/site/jacoco after the tests. -->
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>
