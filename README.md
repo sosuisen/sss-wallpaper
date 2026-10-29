@@ -21,8 +21,20 @@ Windowsのモニターごとに、別の壁紙を設定するJavaFXアプリで�
 ## 必要なもの
 
 - Windows 10以降
+
+ソースからビルドするときは、次のものも必要です。
+
 - JDK 25以降
 - Maven
+
+## インストール
+
+1. [GitHubのReleases](https://github.com/sosuisen/sss-wallpaper/releases)から、`sss-wallpaper-<バージョン>.zip`をダウンロードします。
+2. zipを展開します。中に`sss-wallpaper`フォルダがあります。
+3. `sss-wallpaper`フォルダを、好きな場所へ置きます。`exe`だけを取り出しても動きません。
+4. フォルダの中の`sss-wallpaper.exe`を実行します。
+
+Javaランタイムはフォルダに含まれています。JDKを入れる必要はありません。
 
 ## 実行
 
@@ -36,31 +48,11 @@ mvn javafx:run
 mvn javafx:run -Djavafx.args="--randomize"
 ```
 
-## 実行ファイルを作る
-
-```bash
-mvn package
-```
-
-jpackageで、Javaランタイムを含むアプリのフォルダを作ります。JDKがないPCでも動きます。
-
-- 作られる場所は`target/jpackage/sss-wallpaper/`です。
-- 実行ファイルは、その中の`sss-wallpaper.exe`です。
-- 使うときは、`sss-wallpaper`フォルダごと好きな場所へコピーします。`exe`だけをコピーしても動きません。
-
-`mvn clean`をすると、`target`の中は消えます。そのため、コピーしてから使ってください。
-
-手元でビルドしたexeのバージョンは、`pom.xml`の`app.version`の既定値（`1.0.0`）になります。別のバージョンにしたいときは、次のように指定します。
-
-```bash
-mvn package -Dapp.version=1.2.0
-```
-
 ## ログオン時にランダム変更する
 
 スタートアップフォルダにショートカットを置くと、Windowsへのサインイン時に壁紙をランダムに変えられます。
 
-1. `sss-wallpaper.exe`を右クリック →「その他のオプションを確認」→「ショートカットの作成」を選びます。
+1. インストールした`sss-wallpaper.exe`を右クリック →「その他のオプションを確認」→「ショートカットの作成」を選びます。
 2. `Win`＋`R`で`shell:startup`を開きます。これがスタートアップフォルダです。
 3. 作ったショートカットを、スタートアップフォルダへ移します。
 4. ショートカットを右クリック →「プロパティ」→「ショートカット」タブの「リンク先」の末尾に、`--randomize`を追記します。パスにスペースがある場合は、パス部分だけ引用符で囲みます。
@@ -94,6 +86,38 @@ Windowsは、壁紙の設定を次の場所に保存します。
 
 Windowsは画像をコピーして使います。そのため、`~/.sss-wallpaper/wallpapers/`の画像を消しても、壁紙は消えません。
 
+## テスト
+
+```bash
+mvn test
+```
+
+`@Tag("desktop")`のテストは、実際のPCの壁紙を一時的に変えます。そのため、通常のテストからは外しています。手動で実行するときは、次のコマンドを使います。
+
+```bash
+mvn test -Pdesktop
+```
+
+## 実行ファイルを作る
+
+```bash
+mvn package
+```
+
+jpackageで、Javaランタイムを含むアプリのフォルダを作ります。JDKがないPCでも動きます。
+
+- 作られる場所は`target/jpackage/sss-wallpaper/`です。
+- 実行ファイルは、その中の`sss-wallpaper.exe`です。
+- 使うときは、`sss-wallpaper`フォルダごと好きな場所へコピーします。`exe`だけをコピーしても動きません。
+
+`mvn clean`をすると、`target`の中は消えます。そのため、コピーしてから使ってください。
+
+手元でビルドしたexeのバージョンは、`pom.xml`の`app.version`の既定値（`1.0.0`）になります。別のバージョンにしたいときは、次のように指定します。
+
+```bash
+mvn package -Dapp.version=1.2.0
+```
+
 ## リリース
 
 アプリのバージョンは、Gitのタグで決めます。`pom.xml`のバージョンは書き換えません。
@@ -115,15 +139,3 @@ git push origin v1.2.0
 タグは`v1.2.0`のように、`v`と数字とドットだけで書きます。Windowsのjpackageは、`1.2.0-beta`のような文字を含むバージョンを受け付けません。形式が違うタグをpushすると、ワークフローは最初のステップで失敗します。
 
 `main`へpushしたときも、CIはテストの後にアプリを作ります。できたアプリは、GitHub Actionsの実行結果の「Artifacts」から7日間ダウンロードできます。
-
-## テスト
-
-```bash
-mvn test
-```
-
-`@Tag("desktop")`のテストは、実際のPCの壁紙を一時的に変えます。そのため、通常のテストからは外しています。手動で実行するときは、次のコマンドを使います。
-
-```bash
-mvn test -Pdesktop
-```
