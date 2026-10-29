@@ -24,9 +24,7 @@ public final class ImageFiles {
      */
     public static boolean hasImageExtension(Path file) {
         Objects.requireNonNull(file, "file must not be null");
-        var fileName = file.getFileName();
-        if (fileName == null) { return false; }
-        var name = fileName.toString().toLowerCase(Locale.ROOT);
+        var name = file.toString().toLowerCase(Locale.ROOT);
         return IMAGE_EXTENSIONS.stream().anyMatch(name::endsWith);
     }
 }

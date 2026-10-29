@@ -72,10 +72,8 @@ public class PropertiesMonitorSettingsRepository implements MonitorSettingsRepos
             properties.setProperty(monitorId + FILL_COLOR, monitor.fillColor().name());
         });
         try {
-            var parent = file.toAbsolutePath().getParent();
-            if (parent != null) {
-                Files.createDirectories(parent);
-            }
+            // An absolute path of a file always has a parent.
+            Files.createDirectories(Objects.requireNonNull(file.toAbsolutePath().getParent()));
             try (var writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
                 properties.store(writer, "Settings of sss-wallpaper by monitor id");
             }
