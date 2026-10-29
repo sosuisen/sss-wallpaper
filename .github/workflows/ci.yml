@@ -19,9 +19,9 @@ jobs:
       # The Windows runner checks out with CRLF by default, but the formatter expects LF.
       - run: git config --global core.autocrlf input
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '25'
@@ -37,7 +37,7 @@ jobs:
       # The reports are needed only to read why a test failed.
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: surefire-reports
           path: target/surefire-reports/
@@ -51,9 +51,9 @@ jobs:
     steps:
       - run: git config --global core.autocrlf input
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '25'
@@ -64,7 +64,7 @@ jobs:
         run: mvn -B clean package -DskipTests
 
       - name: Upload the app image
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: sss-wallpaper-${{ github.sha }}
           path: target/jpackage/
