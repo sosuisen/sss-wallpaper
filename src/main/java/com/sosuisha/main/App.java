@@ -51,6 +51,9 @@ public class App extends Application {
         Thread.currentThread().setUncaughtExceptionHandler((_, e) -> {
             if (e instanceof UnrecoverableException unrecoverable) {
                 AlertDialog.showError(unrecoverable.getMessage());
+            } else {
+                e.printStackTrace();
+                AlertDialog.showUnexpectedError(e);
             }
         });
         setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
