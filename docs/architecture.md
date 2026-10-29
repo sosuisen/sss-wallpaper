@@ -1,0 +1,145 @@
+# sss-wallpaperの設計
+
+この文書は、sss-wallpaperの今の設計を説明します。設計が変わったら、この文書も書き換えます。なぜそう決めたかは、ADR（`docs/adr/`）に書きます。
+
+## 全体像
+
+sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJavaFXアプリです。
+
+起動のしかたは2つあります。
+
+- **ウィンドウあり：** 普通に起動すると、モニターの一覧の画面を開きます。
+- **ウィンドウなし：** `--randomize`を付けて起動すると、画面を開きません。全モニターの壁紙をランダムに変えて、すぐに終了します。
+
+画面は1つだけです。
+
+| 画面 | クラス | 内容 |
+|---|---|---|
+| モニターの一覧 | `MonitorsView` | モニターごとの枠を、実際の並びと大きさの比率で横に並べる。枠には現在の壁紙のサムネイル、フォルダ名か画像名、寄せ方と埋める色のComboBoxがある。上に「Randomize all」ボタンがある |
+
+## レイヤーとパッケージ
+
+構成はMVVMです。AppModelはありません。共有する状態がまだないためです。
+
+| パッケージ | 役割 | 主なクラス・インタフェース |
+|---|---|---|
+| `domain.model` | ドメインモデル | `Monitor`（IDと位置と大きさ）、`MonitorSettings`（モニターごとの設定）、`Alignment`（寄せ方）、`FillColor`（埋める色）、`ImageFiles`（画像の拡張子の判定） |
+| `domain.service` | サービスのインタフェース | `WallpaperService`（モニターの列挙、壁紙の設定と取得）、`ImageComposer`（壁紙の画像の合成）、`ImagePicker`（フォルダから1枚を選ぶ） |
+| `domain.repository` | リポジトリのインタフェース | `MonitorSettingsRepository`（設定の読み書き） |
+| `domain.exception` | ドメイン例外 | `UnrecoverableException`と、その子の`WallpaperException`、`ImageComposeException`、`FolderReadException`、`RepositoryException` |
+| `service` | サービスの実装 | `DesktopWallpaperService`、`HResult`、`FitImageComposer`、`RandomImagePicker` |
+| `repository` | リポジトリの実装 | `PropertiesMonitorSettingsRepository` |
+| `presentation` | 画面の共通部品 | `View`、`WindowManager` |
+| `presentation.screens.monitors` | モニターの一覧の画面 | `MonitorsView`、`MonitorsViewModel`、`FrameSize`（枠の大きさ） |
+| `main` | 起動とコンポジションルート | `Launcher`（`main`メソッド）、`App`（`Application`の子クラス） |
+
+依存の向きは、`presentation` → `domain`の一方向です。`service`と`repository`は、`domain`のインタフェースを実装します。`domain`は、ほかのパッケージに依存しません。
+
+`MonitorsViewModel`は、4つのインタフェースをコンストラクタで受け取ります。具体的なクラスを組み立てるのは`App.createMonitorsViewModel()`だけです。テストでは、`NullWallpaperService`などのテスト用の実装に差し替えます。
+
+## 外部とのやり取り
+
+### Windowsの壁紙のAPI
+
+`DesktopWallpaperService`が、WindowsのCOMの`IDesktopWallpaper`を、FFM API（`java.lang.foreign`）で直接呼びます。使うメソッドは次のとおりです。
+
+| メソッド | 用途 |
+|---|---|
+| `GetMonitorDevicePathCount`、`GetMonitorDevicePathAt` | モニターの列挙 |
+| `GetMonitorRECT` | モニターの位置と大きさ。デスクトップから外れたモニターは、ここで失敗するので一覧から除く |
+| `SetWallpaper` | 壁紙の設定 |
+| `GetWallpaper` | 現在の壁紙の取得 |
+
+モニターのIDは、Windowsが返すデバイスパスです。設定ファイルのキーにも、このIDを使います。
+
+COMの呼び出しが失敗すると（HRESULTが負）、`HResult.check`が`WallpaperException`を投げます。
+
+実装に必要なGUIDやvtableの並びと、その調べ方は、ADR 1にあります。
+
+### 合成した壁紙の画像
+
+Windowsの「Fit」は、画像を常に中央に置きます。左寄せや右寄せにするために、`FitImageComposer`がモニターと同じ大きさの画像をアプリで合成します。Windowsには、合成した画像を設定します。
+
+- 元の画像を、縦横比を保ってモニターに収まる大きさに縮めます。
+- 寄せ方に従って左か右に置き、縦は中央に置きます。
+- 余白は、白か黒で埋めます。
+- 保存先は`~/.sss-wallpaper/wallpapers/`です。
+- ファイル名は`monitor-<IDのハッシュ>-<時刻>.png`です。合成のたびに名前を変えます。同じモニターの古い画像は、新しい画像を保存する前に消します。
+
+### 設定ファイル
+
+`PropertiesMonitorSettingsRepository`が、モニターごとの設定をJavaのProperties形式で保存します。
+
+- 場所は`~/.sss-wallpaper/settings.properties`です。システムプロパティ`sss.settings.file`で変えられます。テストはこれで一時フォルダに向けます。
+- 文字コードはUTF-8です。
+- キーは`<モニターID>.<項目>`です。
+
+| キー | 値 |
+|---|---|
+| `<ID>.folder` | 登録したフォルダのパス。ないときはキーがない |
+| `<ID>.image` | 最後に壁紙にした元の画像のパス。ないときはキーがない |
+| `<ID>.alignment` | `LEFT`または`RIGHT` |
+| `<ID>.fill` | `WHITE`または`BLACK` |
+
+読み込むときは、`.alignment`のキーでモニターを見つけます。
+
+## 主な処理の流れ
+
+### ウィンドウありの起動
+
+1. `Launcher.main`が、`--randomize`がないことを確かめて、`Application.launch(App.class)`を呼びます。
+2. `App.start`が、AtlantaFXの`PrimerLight`テーマを適用します。
+3. `App.createMonitorsViewModel()`で、サービスとリポジトリを組み立てます。
+4. `MonitorsView`を`WindowManager`に登録し、ウィンドウを開きます。
+5. `MonitorsViewModel.loadMonitors()`を呼びます。
+   1. `WallpaperService.listMonitors()`でモニターを取り、x座標の順に並べます。
+   2. 各モニターの現在の壁紙を`getWallpaper`で取ります。
+   3. 設定ファイルを読み、各モニターの設定を戻します。戻している間は、設定の変更で壁紙を作り直したり、保存したりしません。
+   4. 枠の縮尺を決めます。枠の合計の幅が960px以内で、かつ最大でも1/8になるようにします。
+   5. モニターの一覧を更新します。`MonitorsView`がこれを購読していて、枠を作り直します。
+
+### ウィンドウなしの起動（`--randomize`）
+
+1. `Launcher.main`が、`App.createMonitorsViewModel()`でViewModelだけを作ります。JavaFXは起動しません。
+2. `loadMonitors()`と`randomizeAll()`を順に呼びます。
+3. `UnrecoverableException`が起きたら、メッセージを標準エラー出力に書き、終了コード1で終わります。
+
+### 画像やフォルダのドロップ
+
+`MonitorsView`が、枠に落とされたファイルを`MonitorsViewModel.dropFiles`に渡します。
+
+- **フォルダのとき：** そのモニターのフォルダとして登録します。`RandomImagePicker`がフォルダの直下から画像を1枚選びます。設定を保存してから、その画像で壁紙を作ります。画像がなければ、壁紙は変えません。
+- **画像のとき：** フォルダの登録を外します。設定を保存してから、その画像で壁紙を作ります。
+- 複数のファイルが落とされたときは、最初に当てはまった1つだけを使います。
+
+壁紙を作る処理（`applyWallpaper`）は、次の順に進みます。
+
+1. `FitImageComposer.compose`で画像を合成します。
+2. `DesktopWallpaperService.setWallpaper`で、Windowsに設定します。
+3. ViewModelの現在の壁紙を、合成した画像に変えます。`MonitorsView`がこれを購読していて、サムネイルを背景で読み込みます。
+
+### ランダム変更
+
+「Randomize all」ボタンで`randomizeAll()`を呼びます。
+
+1. フォルダを登録した各モニターで、フォルダから画像を1枚選びます。
+2. 選べたモニターが1つもなければ、何もしません。
+3. 設定を保存してから、左のモニターから順に壁紙を作ります。
+
+### 寄せ方や埋める色の変更
+
+ComboBoxとViewModelのPropertyは、双方向にバインドしています。値が変わると、ViewModelの購読が動きます。設定を保存し、最後に使った元の画像で壁紙を作り直します。
+
+## エラーの扱い
+
+回復できないエラーは、`UnrecoverableException`の子クラスで表します。
+
+- ウィンドウなしの起動では、`Launcher`がメッセージを出して終了コード1で終わります。
+- ウィンドウありの起動では、例外を捕まえていません。JavaFXのスレッドの既定の処理で、スタックトレースが出力されるだけです。画面には表示しません。
+
+## 関連する文書
+
+- ADR
+  - [ADR 1: IDesktopWallpaper COM via FFM API](adr/adr-001-idesktopwallpaper-via-ffm.md)
+- リアクティブな依存の図：[reactive-dependencies.png](reactive-dependencies.png)（元のファイルは`reactive-dependencies.drawio`）
+- ストーリーマップ：[storymap.md](storymap.md)
