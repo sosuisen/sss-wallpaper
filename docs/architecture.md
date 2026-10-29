@@ -23,13 +23,15 @@ sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJav
 
 構成はMVVMです。AppModelはありません。共有する状態がまだないためです。
 
+画面のPropertyを持たない処理は、サービスに置きます。たとえば、壁紙を作って設定する手順と、ランダム変更の手順は`WallpaperChanger`にあります。`MonitorsViewModel`は、画面の状態だけを持ちます。
+
 | パッケージ | 役割 | 主なクラス・インタフェース |
 |---|---|---|
-| `domain.model` | ドメインモデル | `Monitor`（IDと位置と大きさ）、`MonitorSettings`（モニターごとの設定）、`Alignment`（寄せ方）、`FillColor`（埋める色）、`ImageFiles`（画像の拡張子の判定） |
-| `domain.service` | サービスのインタフェース | `WallpaperService`（モニターの列挙、壁紙の設定と取得）、`ImageComposer`（壁紙の画像の合成）、`ImagePicker`（フォルダから1枚を選ぶ）、`FolderOpener`（フォルダをOSのファイルマネージャーで開く） |
+| `domain.model` | ドメインモデル | `Monitor`（IDと位置と大きさ）、`MonitorSettings`（モニターごとの設定）、`Alignment`（寄せ方）、`FillColor`（埋める色）、`ImageFiles`（画像の拡張子の判定）、`WallpaperChange`（変えた壁紙。モニターのID、元の画像、壁紙） |
+| `domain.service` | サービスのインタフェース | `WallpaperService`（モニターの列挙、壁紙の設定と取得）、`WallpaperChanger`（壁紙を作って設定する、ランダム変更）、`ImageComposer`（壁紙の画像の合成）、`ImagePicker`（フォルダから1枚を選ぶ）、`FolderOpener`（フォルダをOSのファイルマネージャーで開く） |
 | `domain.repository` | リポジトリのインタフェース | `MonitorSettingsRepository`（設定の読み書き） |
 | `domain.exception` | ドメイン例外 | `UnrecoverableException`と、その子の`WallpaperException`、`ImageComposeException`、`FolderReadException`、`FolderOpenException`、`RepositoryException` |
-| `service` | サービスの実装 | `DesktopWallpaperService`、`HResult`、`FitImageComposer`、`RandomImagePicker`、`ExplorerFolderOpener` |
+| `service` | サービスの実装 | `ComposingWallpaperChanger`、`DesktopWallpaperService`、`HResult`、`FitImageComposer`、`RandomImagePicker`、`ExplorerFolderOpener` |
 | `repository` | リポジトリの実装 | `PropertiesMonitorSettingsRepository` |
 | `presentation` | 画面の共通部品 | `View`、`WindowManager` |
 | `presentation.screens.monitors` | モニターの一覧の画面 | `MonitorsView`、`MonitorsViewModel`、`FrameSize`（枠の大きさ） |
@@ -37,7 +39,7 @@ sss-wallpaperは、Windowsのモニターごとに別の壁紙を設定するJav
 
 依存の向きは、`presentation` → `domain`の一方向です。`service`と`repository`は、`domain`のインタフェースを実装します。`domain`は、ほかのパッケージに依存しません。
 
-`MonitorsViewModel`は、5つのインタフェースをコンストラクタで受け取ります。具体的なクラスを組み立てるのは`App.createMonitorsViewModel()`だけです。テストでは、`NullWallpaperService`などのテスト用の実装に差し替えます。
+`MonitorsViewModel`は、5つのインタフェースをコンストラクタで受け取ります。具体的なクラスを組み立てるのは、`App.createMonitorsViewModel()`と`App.createWallpaperChanger()`だけです。テストでは、`NullWallpaperService`などのテスト用の実装に差し替えます。
 
 クラスの関係は、次のクラス図で見られます。
 
@@ -108,8 +110,8 @@ Windowsの「Fit」は、画像を常に中央に置きます。左寄せや右�
 
 ### ウィンドウなしの起動（`--randomize`）
 
-1. `Launcher.main`が、`App.createMonitorsViewModel()`でViewModelだけを作ります。JavaFXは起動しません。
-2. `loadMonitors()`と`randomizeAll()`を順に呼びます。
+1. `Launcher.main`が、`App.createWallpaperChanger()`で`WallpaperChanger`だけを作ります。JavaFXは起動しません。ViewModelも作りません。
+2. `WallpaperChanger.randomizeAll()`を呼びます。処理は「ランダム変更」と同じです。
 3. `UnrecoverableException`が起きたら、メッセージを標準エラー出力に書き、終了コード1で終わります。
 
 ### 画像やフォルダのドロップ
@@ -120,19 +122,22 @@ Windowsの「Fit」は、画像を常に中央に置きます。左寄せや右�
 - **画像のとき：** フォルダの登録を外します。設定を保存してから、その画像で壁紙を作ります。
 - 複数のファイルが落とされたときは、最初に当てはまった1つだけを使います。
 
-壁紙を作る処理（`applyWallpaper`）は、次の順に進みます。
+壁紙を作る処理（`WallpaperChanger.change`）は、次の順に進みます。
 
 1. `FitImageComposer.compose`で画像を合成します。
 2. `DesktopWallpaperService.setWallpaper`で、Windowsに設定します。
-3. ViewModelの現在の壁紙を、合成した画像に変えます。`MonitorsView`がこれを購読していて、サムネイルを背景で読み込みます。
+3. 合成した画像を返します。ViewModelは、自分の現在の壁紙をこの画像に変えます。`MonitorsView`がこれを購読していて、サムネイルを背景で読み込みます。
 
 ### ランダム変更
 
-「Randomize all」ボタンで`randomizeAll()`を呼びます。
+「Randomize all」ボタンで`MonitorsViewModel.randomizeAll()`を呼びます。ViewModelは`WallpaperChanger.randomizeAll()`に任せます。
 
-1. フォルダを登録した各モニターで、フォルダから画像を1枚選びます。
-2. 選べたモニターが1つもなければ、何もしません。
-3. 設定を保存してから、左のモニターから順に壁紙を作ります。
+1. モニターの一覧と、設定ファイルを読みます。
+2. フォルダを登録した各モニターで、フォルダから画像を1枚選びます。
+3. 選べたモニターが1つもなければ、何もしません。
+4. 選んだ画像を元の画像として、設定を保存します。
+5. 左のモニターから順に、壁紙を作ります。
+6. モニターごとに、元の画像と壁紙を返します。ViewModelは、この結果で自分の状態を更新します。
 
 ### 場所を開く
 

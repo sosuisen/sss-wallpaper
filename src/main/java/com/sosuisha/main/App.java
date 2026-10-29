@@ -4,11 +4,16 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
+import com.sosuisha.domain.repository.MonitorSettingsRepository;
+import com.sosuisha.domain.service.ImagePicker;
+import com.sosuisha.domain.service.WallpaperChanger;
+import com.sosuisha.domain.service.WallpaperService;
 import com.sosuisha.presentation.View;
 import com.sosuisha.presentation.WindowManager;
 import com.sosuisha.presentation.screens.monitors.MonitorsView;
 import com.sosuisha.presentation.screens.monitors.MonitorsViewModel;
 import com.sosuisha.repository.PropertiesMonitorSettingsRepository;
+import com.sosuisha.service.ComposingWallpaperChanger;
 import com.sosuisha.service.DesktopWallpaperService;
 import com.sosuisha.service.ExplorerFolderOpener;
 import com.sosuisha.service.FitImageComposer;
@@ -29,6 +34,8 @@ public class App extends Application {
     /** System property that overrides the path of the settings file. */
     static final String SETTINGS_FILE_PROPERTY = "sss.settings.file";
     static final String ICON_RESOURCE = "sss-wallpaper.png";
+    private static final Path APP_FOLDER =
+        Path.of(System.getProperty("user.home"), ".sss-wallpaper");
 
     /**
      * Composition root that wires the dependencies and shows the first window.
@@ -50,22 +57,47 @@ public class App extends Application {
 
     /**
      * Creates the view model of the monitors screen with the real services.
-     * The launcher uses it too when it starts without a window.
      *
      * @return view model whose monitors are not loaded yet
      */
     static MonitorsViewModel createMonitorsViewModel() {
-        var appFolder = Path.of(System.getProperty("user.home"), ".sss-wallpaper");
-        var settingsFile = Path.of(
-            System.getProperty(
-                SETTINGS_FILE_PROPERTY, appFolder.resolve("settings.properties").toString()
-            )
-        );
+        var wallpaperService = new DesktopWallpaperService();
+        var imagePicker = new RandomImagePicker(RandomGenerator.getDefault());
+        var settingsRepository = new PropertiesMonitorSettingsRepository(settingsFile());
         return new MonitorsViewModel(
-            new DesktopWallpaperService(),
-            new FitImageComposer(appFolder.resolve("wallpapers")),
-            new RandomImagePicker(RandomGenerator.getDefault()),
-            new PropertiesMonitorSettingsRepository(settingsFile), new ExplorerFolderOpener()
+            wallpaperService,
+            createWallpaperChanger(wallpaperService, imagePicker, settingsRepository), imagePicker,
+            settingsRepository, new ExplorerFolderOpener()
+        );
+    }
+
+    /**
+     * Creates the wallpaper changer with the real services. The launcher uses
+     * it when it starts without a window.
+     *
+     * @return wallpaper changer
+     */
+    static WallpaperChanger createWallpaperChanger() {
+        return createWallpaperChanger(
+            new DesktopWallpaperService(), new RandomImagePicker(RandomGenerator.getDefault()),
+            new PropertiesMonitorSettingsRepository(settingsFile())
+        );
+    }
+
+    private static WallpaperChanger createWallpaperChanger(
+        WallpaperService wallpaperService, ImagePicker imagePicker,
+        MonitorSettingsRepository settingsRepository) {
+        return new ComposingWallpaperChanger(
+            wallpaperService, new FitImageComposer(APP_FOLDER.resolve("wallpapers")), imagePicker,
+            settingsRepository
+        );
+    }
+
+    private static Path settingsFile() {
+        return Path.of(
+            System.getProperty(
+                SETTINGS_FILE_PROPERTY, APP_FOLDER.resolve("settings.properties").toString()
+            )
         );
     }
 }

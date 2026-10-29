@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import com.sosuisha.domain.exception.UnrecoverableException;
-import com.sosuisha.presentation.screens.monitors.MonitorsViewModel;
+import com.sosuisha.domain.service.WallpaperChanger;
 
 import javafx.application.Application;
 
@@ -28,7 +28,7 @@ public class Launcher {
             return;
         }
         try {
-            randomizeWithoutWindow(App.createMonitorsViewModel());
+            randomizeWithoutWindow(App.createWallpaperChanger());
         } catch (UnrecoverableException e) {
             // No window shows the error, so the exit code tells a scheduler that it failed.
             System.err.println(e.getMessage());
@@ -49,15 +49,14 @@ public class Launcher {
     }
 
     /**
-     * Loads the monitors and the settings, then changes the wallpaper of every
-     * monitor to an image picked at random from its registered folder.
+     * Changes the wallpaper of every monitor to an image picked at random from
+     * its registered folder.
      *
-     * @param viewModel view model that does the work without a view
-     * @throws NullPointerException if viewModel is null
+     * @param wallpaperChanger changer that does the work without a window
+     * @throws NullPointerException if wallpaperChanger is null
      */
-    static void randomizeWithoutWindow(MonitorsViewModel viewModel) {
-        Objects.requireNonNull(viewModel, "viewModel must not be null");
-        viewModel.loadMonitors();
-        viewModel.randomizeAll();
+    static void randomizeWithoutWindow(WallpaperChanger wallpaperChanger) {
+        Objects.requireNonNull(wallpaperChanger, "wallpaperChanger must not be null");
+        wallpaperChanger.randomizeAll();
     }
 }
