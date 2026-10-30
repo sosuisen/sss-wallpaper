@@ -369,5 +369,87 @@
         <test.groups>desktop</test.groups>
       </properties>
     </profile>
+    <!-- mvn -Pnative package makes a native exe with GraalVM under target/.
+         It needs GraalVM 25.4 as JAVA_HOME. See docs/native-image-research.md. -->
+    <profile>
+      <id>native</id>
+      <properties>
+        <!-- The static JavaFX libraries must come from the same commit as the
+             JavaFX jars, and no static libraries exist for 27.0.1 yet. -->
+        <javafx.version>27</javafx.version>
+        <jfx.static.libs.version>27-2</jfx.static.libs.version>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>us.hebi.graalvm</groupId>
+          <artifactId>jfx-static-feature</artifactId>
+          <version>1.1.1</version>
+        </dependency>
+        <dependency>
+          <groupId>us.hebi.graalvm</groupId>
+          <artifactId>jfx-static-libs</artifactId>
+          <version>${jfx.static.libs.version}</version>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>1.1.18</version>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <imageName>sss-wallpaper</imageName>
+              <mainClass>${main.class}</mainClass>
+              <buildArgs>
+                <!-- DesktopWallpaperService calls restricted FFM methods. -->
+                <buildArg>--enable-native-access=ALL-UNNAMED</buildArg>
+              </buildArgs>
+            </configuration>
+          </plugin>
+          <!-- The native exe replaces the app image of jpackage. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-dependencies</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.panteleyev</groupId>
+            <artifactId>jpackage-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>remove-readonly</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>
