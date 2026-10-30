@@ -15,6 +15,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.sosuisha.domain.exception.FolderReadException;
+import com.sosuisha.domain.exception.ImageComposeException;
 import com.sosuisha.domain.exception.RepositoryException;
 import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;
@@ -238,6 +240,52 @@ class MonitorsViewModelTest {
 
         assertEquals("empty", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
         assertEquals(List.of(), wallpapers);
+    }
+
+    @Test
+    @DisplayName("フォルダから画像を選べないとき、フォルダは登録されない")
+    void a_folder_that_cannot_be_read_is_not_registered() throws IOException {
+        var folder = Files.createDirectory(tempDir.resolve("locked"));
+        ImagePicker picker = from -> {
+            throw new FolderReadException("Cannot read the folder: " + from, null);
+        };
+        var viewModel = viewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, picker,
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
+        );
+
+        assertThrows(
+            FolderReadException.class, () -> viewModel.dropFiles(LEFT_MONITOR, List.of(folder))
+        );
+
+        assertEquals("", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
+    }
+
+    @Test
+    @DisplayName("ドロップした画像を合成できないとき、元の画像とフォルダの登録は変わらず、保存もされない")
+    void an_image_that_cannot_be_composed_changes_neither_the_source_nor_the_saved_settings()
+        throws IOException {
+        var folder = Files.createDirectory(tempDir.resolve("photos"));
+        var saved = new ArrayList<Map<String, MonitorSettings>>();
+        ImageComposer composer = (source, monitor, alignment, fillColor) -> {
+            if (source.endsWith("broken.png")) {
+                throw new ImageComposeException("Cannot read the image: " + source, null);
+            }
+            return NAMING_COMPOSER.compose(source, monitor, alignment, fillColor);
+        };
+        var viewModel = viewModel(
+            new NullWallpaperService(), composer, PICK_RANDOM_PNG, savingRepository(saved),
+            new NullFolderOpener()
+        );
+        viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
+
+        assertThrows(
+            ImageComposeException.class,
+            () -> viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("broken.png")))
+        );
+
+        assertEquals("photos", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
+        assertEquals(1, saved.size());
     }
 
     @Test
