@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
+import com.sosuisha.domain.exception.WallpaperException;
 import com.sosuisha.domain.model.Monitor;
 
 /**
@@ -14,8 +15,9 @@ public interface WallpaperService {
      * Returns the monitors that are attached to the desktop now.
      *
      * @return monitors in no particular order
+     * @throws WallpaperException if Windows fails to list them
      */
-    List<Monitor> listMonitors();
+    List<Monitor> listMonitors() throws WallpaperException;
 
     /**
      * Sets the wallpaper of one monitor.
@@ -23,8 +25,9 @@ public interface WallpaperService {
      * @param monitorId id of the monitor
      * @param image     image file to use as the wallpaper
      * @throws NullPointerException if monitorId or image is null
+     * @throws WallpaperException   if Windows fails to set it
      */
-    void setWallpaper(String monitorId, Path image);
+    void setWallpaper(String monitorId, Path image) throws WallpaperException;
 
     /**
      * Returns the current wallpaper of one monitor.
@@ -32,6 +35,7 @@ public interface WallpaperService {
      * @param monitorId id of the monitor
      * @return image file of the wallpaper, or empty if the monitor has none
      * @throws NullPointerException if monitorId is null
+     * @throws WallpaperException   if Windows fails to read it
      */
-    Optional<Path> getWallpaper(String monitorId);
+    Optional<Path> getWallpaper(String monitorId) throws WallpaperException;
 }

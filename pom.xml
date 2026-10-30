@@ -220,7 +220,7 @@
         <artifactId>formatter-maven-plugin</artifactId>
         <version>2.29.0</version>
         <configuration>
-          <configFile>${project.basedir}/styles_for_jfxbuilder.xml</configFile>
+          <configFile>${project.basedir}/java-formatter.xml</configFile>
           <lineEnding>LF</lineEnding>
         </configuration>
         <!-- Formats the sources in process-sources, before every compile. -->

@@ -1,7 +1,7 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.compile.nullAnalysis.mode": "disabled",
-    "java.format.settings.url": "styles_for_jfxbuilder.xml",
+    "java.format.settings.url": "java-formatter.xml",
     "java.format.settings.profile": "Customized GoogleStyle for JavaFX builder",
     "[java]": {
         "editor.formatOnSave": true,

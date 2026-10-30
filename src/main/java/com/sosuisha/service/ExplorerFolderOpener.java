@@ -18,7 +18,7 @@ public class ExplorerFolderOpener implements FolderOpener {
      * @throws FolderOpenException  if Explorer cannot be started
      */
     @Override
-    public void open(Path folder) {
+    public void open(Path folder) throws FolderOpenException {
         Objects.requireNonNull(folder, "folder must not be null");
         try {
             // Not waited for, because Explorer keeps running after the window opens.

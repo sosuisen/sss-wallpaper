@@ -41,7 +41,7 @@ public class PropertiesMonitorSettingsRepository implements MonitorSettingsRepos
     }
 
     @Override
-    public Map<String, MonitorSettings> load() {
+    public Map<String, MonitorSettings> load() throws RepositoryException {
         if (!Files.exists(file)) { return Map.of(); }
         var properties = new Properties();
         try (var reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
@@ -61,7 +61,7 @@ public class PropertiesMonitorSettingsRepository implements MonitorSettingsRepos
     }
 
     @Override
-    public void save(Map<String, MonitorSettings> settings) {
+    public void save(Map<String, MonitorSettings> settings) throws RepositoryException {
         Objects.requireNonNull(settings, "settings must not be null");
         var properties = new Properties();
         settings.forEach((monitorId, monitor) -> {

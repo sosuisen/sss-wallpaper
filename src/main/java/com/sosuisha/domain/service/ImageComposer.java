@@ -2,6 +2,7 @@ package com.sosuisha.domain.service;
 
 import java.nio.file.Path;
 
+import com.sosuisha.domain.exception.ImageComposeException;
 import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;
 import com.sosuisha.domain.model.Monitor;
@@ -20,8 +21,9 @@ public interface ImageComposer {
      * @param fillColor color of the part that the fitted image does not cover
      * @return file of the composed image
      * @throws NullPointerException if any argument is null
-     * @throws com.sosuisha.domain.exception.ImageComposeException if the source
+     * @throws ImageComposeException if the source
      *         cannot be read or the result cannot be saved
      */
-    Path compose(Path source, Monitor monitor, Alignment alignment, FillColor fillColor);
+    Path compose(Path source, Monitor monitor, Alignment alignment, FillColor fillColor)
+        throws ImageComposeException;
 }

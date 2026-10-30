@@ -13,21 +13,22 @@ import java.util.Objects;
  * @param height height in pixels
  */
 public record Monitor(String id, int x, int y, int width, int height) {
-    /** Order of the monitors from left to right on the virtual desktop. */
-    public static final Comparator<Monitor> LEFT_TO_RIGHT = Comparator.comparingInt(Monitor::x);
+    /**
+     * Order of the monitors from left to right on the virtual desktop. The
+     * monitors with the same left edge are ordered from top to bottom.
+     */
+    public static final Comparator<Monitor> LEFT_TO_RIGHT =
+        Comparator.comparingInt(Monitor::x).thenComparingInt(Monitor::y);
 
     /**
      * Creates a monitor.
      *
-     * @throws NullPointerException     if id is null
-     * @throws IllegalArgumentException if width or height is zero or negative
+     * @throws NullPointerException if id is null
      */
     public Monitor {
         Objects.requireNonNull(id, "id must not be null");
-        if (width <= 0 || height <= 0) {
-            throw new IllegalArgumentException(
-                "width and height must be positive: " + width + "x" + height
-            );
-        }
+        // The size is not checked. Windows gives no rectangle to a monitor
+        // that cannot show a wallpaper, and the service skips such a monitor,
+        // so no case is known where the size is zero or negative.
     }
 }

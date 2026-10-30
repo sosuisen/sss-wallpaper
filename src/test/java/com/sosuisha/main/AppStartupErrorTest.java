@@ -5,11 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -21,12 +23,13 @@ import javafx.stage.Stage;
 @ExtendWith(ApplicationExtension.class)
 class AppStartupErrorTest {
     private Stage stage;
+    @TempDir
+    Path tempDir;
 
     @Start
     void setup(Stage stage) throws IOException {
         // A folder in place of the settings file makes reading it fail.
-        var folder = Files.createTempDirectory("sss-wallpaper-test");
-        var settingsFile = Files.createDirectory(folder.resolve("settings.properties"));
+        var settingsFile = Files.createDirectory(tempDir.resolve("settings.properties"));
         System.setProperty(App.SETTINGS_FILE_PROPERTY, settingsFile.toString());
         // The injected primary stage is reused across tests and rejects
         // initStyle, so App gets a fresh stage.

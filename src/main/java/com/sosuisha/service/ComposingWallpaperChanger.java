@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.sosuisha.domain.exception.ImageComposeException;
+import com.sosuisha.domain.exception.UnrecoverableException;
+import com.sosuisha.domain.exception.WallpaperException;
 import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;
 import com.sosuisha.domain.model.Monitor;
@@ -49,7 +52,8 @@ public class ComposingWallpaperChanger implements WallpaperChanger {
     }
 
     @Override
-    public Path change(Monitor monitor, Path source, Alignment alignment, FillColor fillColor) {
+    public Path change(Monitor monitor, Path source, Alignment alignment, FillColor fillColor)
+        throws ImageComposeException, WallpaperException {
         Objects.requireNonNull(monitor, "monitor must not be null");
         Objects.requireNonNull(source, "source must not be null");
         Objects.requireNonNull(alignment, "alignment must not be null");
@@ -60,7 +64,7 @@ public class ComposingWallpaperChanger implements WallpaperChanger {
     }
 
     @Override
-    public List<WallpaperChange> randomizeAll() {
+    public List<WallpaperChange> randomizeAll() throws UnrecoverableException {
         var settings = settingsRepository.load();
         var picks = pickImages(leftToRight(wallpaperService.listMonitors()), settings);
         if (picks.isEmpty()) { return List.of(); }

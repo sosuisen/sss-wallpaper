@@ -34,7 +34,8 @@ public class FitImageComposer implements ImageComposer {
     }
 
     @Override
-    public Path compose(Path source, Monitor monitor, Alignment alignment, FillColor fillColor) {
+    public Path compose(Path source, Monitor monitor, Alignment alignment, FillColor fillColor)
+        throws ImageComposeException {
         Objects.requireNonNull(source, "source must not be null");
         Objects.requireNonNull(monitor, "monitor must not be null");
         Objects.requireNonNull(alignment, "alignment must not be null");

@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.sosuisha.domain.exception.WallpaperException;
 import com.sosuisha.domain.model.Monitor;
 import com.sosuisha.domain.service.WallpaperService;
 
@@ -55,7 +56,7 @@ public class DesktopWallpaperService implements WallpaperService {
         downcall("CoTaskMemFree", FunctionDescriptor.ofVoid(ADDRESS));
 
     @Override
-    public List<Monitor> listMonitors() {
+    public List<Monitor> listMonitors() throws WallpaperException {
         return withDesktopWallpaper((arena, wallpaper) -> {
             var count = arena.allocate(JAVA_INT);
             HResult.check(
@@ -90,7 +91,7 @@ public class DesktopWallpaperService implements WallpaperService {
     }
 
     @Override
-    public void setWallpaper(String monitorId, Path image) {
+    public void setWallpaper(String monitorId, Path image) throws WallpaperException {
         Objects.requireNonNull(monitorId, "monitorId must not be null");
         Objects.requireNonNull(image, "image must not be null");
         int result = withDesktopWallpaper(
@@ -104,13 +105,8 @@ public class DesktopWallpaperService implements WallpaperService {
         HResult.check(result, "SetWallpaper");
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws com.sosuisha.domain.exception.WallpaperException if Windows fails to read it
-     */
     @Override
-    public Optional<Path> getWallpaper(String monitorId) {
+    public Optional<Path> getWallpaper(String monitorId) throws WallpaperException {
         Objects.requireNonNull(monitorId, "monitorId must not be null");
         return withDesktopWallpaper((arena, wallpaper) -> {
             var pathPointer = arena.allocate(ADDRESS);

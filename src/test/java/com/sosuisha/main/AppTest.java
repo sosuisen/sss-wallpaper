@@ -4,14 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
@@ -23,13 +23,14 @@ import javafx.stage.Stage;
 @ExtendWith(ApplicationExtension.class)
 class AppTest {
     private Stage stage;
+    @TempDir
+    Path tempDir;
 
     @Start
-    void setup(Stage stage) throws IOException {
+    void setup(Stage stage) {
         // The real settings file of the user must not be read in tests.
-        var folder = Files.createTempDirectory("sss-wallpaper-test");
         System.setProperty(
-            App.SETTINGS_FILE_PROPERTY, folder.resolve("settings.properties").toString()
+            App.SETTINGS_FILE_PROPERTY, tempDir.resolve("settings.properties").toString()
         );
         // The injected primary stage is reused across tests and rejects
         // initStyle, so App gets a fresh stage.

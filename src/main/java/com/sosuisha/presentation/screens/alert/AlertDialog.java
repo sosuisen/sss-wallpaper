@@ -13,7 +13,7 @@ import javafx.scene.control.Alert.AlertType;
 /**
  * Helper that shows common alert dialogs.
  */
-public class AlertDialog {
+public final class AlertDialog {
     private AlertDialog() {}
 
     /**

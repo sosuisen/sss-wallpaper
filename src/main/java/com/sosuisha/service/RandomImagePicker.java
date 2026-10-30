@@ -29,7 +29,7 @@ public class RandomImagePicker implements ImagePicker {
     }
 
     @Override
-    public Optional<Path> pick(Path folder) {
+    public Optional<Path> pick(Path folder) throws FolderReadException {
         Objects.requireNonNull(folder, "folder must not be null");
         // Sorted, because the order of Files.list is not defined and the
         // same random number should pick the same file.

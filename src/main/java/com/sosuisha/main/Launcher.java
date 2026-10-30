@@ -12,7 +12,7 @@ import javafx.application.Application;
  * Entry point of the application.
  * This launcher class starts the JavaFX runtime from the classpath.
  */
-public class Launcher {
+public final class Launcher {
     /** Option that randomizes the wallpapers without a window and exits. */
     static final String RANDOMIZE_OPTION = "--randomize";
 

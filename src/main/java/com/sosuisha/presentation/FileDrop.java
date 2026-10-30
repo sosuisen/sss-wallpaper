@@ -14,7 +14,7 @@ import javafx.scene.input.TransferMode;
  * Explorer. The tests cannot make the drag events with files, so this class
  * keeps the handling of the events small and out of the views.
  */
-public class FileDrop {
+public final class FileDrop {
     private FileDrop() {}
 
     /**

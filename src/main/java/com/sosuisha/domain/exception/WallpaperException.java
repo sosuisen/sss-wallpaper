@@ -8,7 +8,8 @@ public class WallpaperException extends UnrecoverableException {
      * Creates the exception.
      *
      * @param message message for the user
-     * @throws NullPointerException if message is null
+     * @throws NullPointerException     if message is null
+     * @throws IllegalArgumentException if message is blank
      */
     public WallpaperException(String message) {
         super(message, null);

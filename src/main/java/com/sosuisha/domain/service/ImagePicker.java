@@ -3,6 +3,8 @@ package com.sosuisha.domain.service;
 import java.nio.file.Path;
 import java.util.Optional;
 
+import com.sosuisha.domain.exception.FolderReadException;
+
 /**
  * Picks one image file from a folder.
  */
@@ -14,7 +16,7 @@ public interface ImagePicker {
      * @param folder folder to pick from
      * @return picked image file, or empty if the folder has no image file
      * @throws NullPointerException if folder is null
-     * @throws com.sosuisha.domain.exception.FolderReadException if the folder cannot be read
+     * @throws FolderReadException if the folder cannot be read
      */
-    Optional<Path> pick(Path folder);
+    Optional<Path> pick(Path folder) throws FolderReadException;
 }
