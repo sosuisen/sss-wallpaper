@@ -11,7 +11,8 @@ public class FolderOpenException extends UnrecoverableException {
      *
      * @param message message for the user
      * @param cause   cause of the error, or null if there is none
-     * @throws NullPointerException if message is null
+     * @throws NullPointerException     if message is null
+     * @throws IllegalArgumentException if message is blank
      */
     public FolderOpenException(String message, @Nullable Throwable cause) {
         super(message, cause);
