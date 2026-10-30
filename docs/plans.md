@@ -17,7 +17,7 @@
   - [x] 例外の発生源に`@throws`と`throws`句を書く
   - [x] `FolderOpener`のJavadocに`@throws NullPointerException`を書く
   - [x] staticメンバーだけのクラスに`final`を付ける
-  - [x] `import module`を使う
+  - [x] `import module`を使う → 講義用プロジェクトでだけ使う規約になったため、取り消した
   - [x] テストの一時フォルダを`@TempDir`にする
   - [x] `photos.png`というフォルダ名のテストの意図を名前に表す
   - [x] `assertEquals(true/false, ...)`を`assertTrue`／`assertFalse`にする
