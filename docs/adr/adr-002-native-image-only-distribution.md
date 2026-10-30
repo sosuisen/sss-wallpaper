@@ -32,7 +32,7 @@ JavaFXの静的なライブラリには、StaticFXを使う。`jfx-static-featur
 
 ネイティブビルドは、Mavenの`native`プロファイルに置く。`mvn -Pnative package`で、`native-maven-plugin`がexeを作る。ふだんの`mvn package`では、exeを作らない。テストは、プロファイルなしのまま、TemurinのJDKで動かす。GraalVMが要るのは、exeを作るときだけである。
 
-native imageに知らせる情報は、`src/main/resources/META-INF/native-image/com.sosuisha/sss-wallpaper/reachability-metadata.json`に置き、リポジトリで管理する。このファイルは、トレーシングエージェントで作る。GUI、`--randomize`、エラーダイアログの3つの経路を通して記録する。FFMの新しいシグネチャ、新しいリソース、新しいJavaFXのコントロールを使うとき、またはJavaFXやAtlantaFXの版を上げるときに、作り直す。
+native imageに知らせる情報は、`src/main/resources/META-INF/native-image/com.sosuisha/sss-wallpaper/reachability-metadata.json`に置き、リポジトリで管理する。このファイルは、トレーシングエージェントで作る。GUI、`--randomize`、それぞれのエラーダイアログの4つの経路を通して記録する。FFMの新しいシグネチャ、新しいリソース、新しいJavaFXのコントロールを使うとき、またはJavaFXやAtlantaFXの版を上げるときに、作り直す。
 
 CIでは、jpackageの代わりにexeを作る。`ci.yml`の`package`ジョブは、mainへのpushでexeを作り、`--randomize`で1回起動する。メタデータの不足は実行時にしか分からないので、ここで早く見つける。`release.yml`は、タグでexeを作り、zipにしてGitHub Releaseに置く。
 
