@@ -3,6 +3,9 @@ package com.sosuisha.domain.service;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.sosuisha.domain.exception.ImageComposeException;
+import com.sosuisha.domain.exception.UnrecoverableException;
+import com.sosuisha.domain.exception.WallpaperException;
 import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;
 import com.sosuisha.domain.model.Monitor;
@@ -21,10 +24,11 @@ public interface WallpaperChanger {
      * @param fillColor color of the part that the fitted image does not cover
      * @return image file that was set as the wallpaper
      * @throws NullPointerException if any argument is null
-     * @throws com.sosuisha.domain.exception.ImageComposeException if the image cannot be composed
-     * @throws com.sosuisha.domain.exception.WallpaperException if the wallpaper cannot be set
+     * @throws ImageComposeException if the image cannot be composed
+     * @throws WallpaperException if the wallpaper cannot be set
      */
-    Path change(Monitor monitor, Path source, Alignment alignment, FillColor fillColor);
+    Path change(Monitor monitor, Path source, Alignment alignment, FillColor fillColor)
+        throws ImageComposeException, WallpaperException;
 
     /**
      * Changes the wallpaper of every connected monitor that has a registered
@@ -34,8 +38,8 @@ public interface WallpaperChanger {
      * the wallpapers are changed from left to right.
      *
      * @return changes from left to right, or an empty list if nothing was picked
-     * @throws com.sosuisha.domain.exception.UnrecoverableException if the
-     *         settings, the folders or the wallpapers cannot be read or written
+     * @throws UnrecoverableException if the settings, the folders or the wallpapers cannot
+     *                                be read or written
      */
-    List<WallpaperChange> randomizeAll();
+    List<WallpaperChange> randomizeAll() throws UnrecoverableException;
 }
