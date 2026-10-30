@@ -26,8 +26,26 @@ public final class AlertDialog {
      * @throws NullPointerException if message is null
      */
     public static void showError(String message) {
+        showError(message, () -> {
+        });
+    }
+
+    /**
+     * Shows an error alert dialog with the given message, and runs an action
+     * when the dialog is closed. Otherwise it is the same as
+     * {@link #showError(String)}.
+     *
+     * @param message  message shown in the dialog
+     * @param onClosed action that runs when the dialog is closed
+     * @throws NullPointerException if message or onClosed is null
+     */
+    public static void showError(String message, Runnable onClosed) {
         Objects.requireNonNull(message, "message must not be null");
-        show("An error occurred", LabelBuilder.create().text(message).wrapText(true).build());
+        Objects.requireNonNull(onClosed, "onClosed must not be null");
+        show(
+            "An error occurred", LabelBuilder.create().text(message).wrapText(true).build(),
+            onClosed
+        );
     }
 
     /**
@@ -46,17 +64,19 @@ public final class AlertDialog {
         exception.printStackTrace(new PrintWriter(stackTrace));
         show(
             "An unexpected error occurred",
-            TextAreaBuilder.create().text(stackTrace.toString()).editable(false).build()
+            TextAreaBuilder.create().text(stackTrace.toString()).editable(false).build(), () -> {
+            }
         );
     }
 
-    private static void show(String headerText, Node details) {
+    private static void show(String headerText, Node details, Runnable onClosed) {
         AlertBuilder.create(AlertType.ERROR)
             .title("Error")
             .headerText(headerText)
             .apply(alert -> {
                 alert.getDialogPane().setExpandableContent(details);
                 alert.getDialogPane().setExpanded(true);
+                alert.setOnHidden(_ -> onClosed.run());
             })
             .build()
             .show();
