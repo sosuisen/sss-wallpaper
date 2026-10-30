@@ -14,13 +14,15 @@
 
 ## 結論
 
-実現できる見込みは高い。ただし、Gluonの道具は使わない。最新の構成は、**Oracle GraalVM 25系とHebiRoboticsの`jfx-static-feature`**である。
+実現できる見込みは高い。Gluonの道具（GluonFX、Gluon版GraalVM）は採用しない。最新の構成は、**Oracle GraalVM 25系とHebiRoboticsの`jfx-static-feature`**である。
 
 いちばん大きい障害は、JavaFXを`27.0.1`から`27`へ下げる必要があることである。
 
 ## 1. 道具とバージョン（確認済み）
 
-### Gluon（勧めない）
+### Gluon（採用しない）
+
+Gluonの道具は採用しない。調べた内容は、判断の材料として残す。
 
 - `gluonfx-maven-plugin`の最新は1.0.29である（2026-06-18、Maven Central）。
 - Substrateの最新は0.0.69である（2026-06-18）。既定の`DEFAULT_JAVAFX_STATIC_SDK_VERSION`は`21-ea+11.3`のままである。
@@ -28,7 +30,9 @@
 - 公式ドキュメントのWindowsの手順は、Java 17版のGraalVM 22.1とVisual Studio 2019のままである。
 - まとめると、Java 25とJavaFX 27に対応するという記述は見つからなかった。
 
-### StaticFX（勧める）
+### StaticFX（採用候補）
+
+仕組みは、次の「StaticFXの仕組み」節で説明する。
 
 - 組み合わせは`us.hebi.graalvm:jfx-static-libs`と`jfx-static-feature`である。
 - 最新は`27-2`と`1.1.1`で、どちらも2026-10の公開である。
@@ -42,6 +46,75 @@
 - 25.0.4-1（2026-07）が出ている。JavaFX入りのNIK-fullもある。
 - ただし、同梱されるJavaFXは独自のものである。Maven上の27.0.1とは合わない。
 - 確かめられたJavaFXの修正は、Linux向けだけだった。
+
+## StaticFXの仕組み
+
+StaticFX（`jfx-static-feature`）は、2つの部品と、アプリ側で用意するメタデータでできている。この節は、READMEを読んで確かめた内容である。READMEに書かれていない説明は、その旨を書く。
+
+### 前提: なぜ特別な仕組みが要るのか
+
+この小節はREADMEの内容ではなく、背景の説明である。
+
+- 普通のJVMで動くJavaFXは、jarの中のDLLを取り出し、`System.loadLibrary`で読み込む。
+  - 例: `glass.dll`（ウィンドウ）、`prism_d3d.dll`（描画）、`javafx_font.dll`（フォント）
+  - このプロジェクトのテストで、`~/.openjfx/cache`への取り出しが衝突した件が、まさにこの仕組みである。
+- native imageは、ビルドのときに、到達できるコードだけを1つの`.exe`にまとめる。そのため、実行時の動きをビルドのときに知っておく必要がある。
+  - リフレクションで使うクラス
+  - JNIで呼ぶネイティブメソッド
+  - 読み込むリソース
+- JavaFXは、この3つをどれも大量に使う。そこで、JavaFXのネイティブコードを静的ライブラリにして`.exe`に直接リンクし、必要なメタデータを揃える仕組みが要る。
+
+### 部品1: `jfx-static-libs`（材料）
+
+- JavaFXの版ごとに1つのjarである。中身は2つある。
+  - 全プラットフォーム分の**静的ライブラリ**（`.lib`や`.a`）
+  - それに合う**メタデータ**。JavaFX内部のリフレクションとJNIで、1,000件近くある。
+- 作者のフォーク（ennerf/jfx）でビルドしている。公式のリリースのタグに`@Reachable`という注釈を足し、コンパイル時にメタデータを生成する。製品のコードは変えていない、と書かれている。
+- webとmediaのモジュールは、静的ライブラリにできない。この2つは、普通のDLLを`.exe`の隣に置いて使う。
+
+### 部品2: `jfx-static-feature`（組み立て役）
+
+GraalVMの`Feature`インタフェースの実装である。`Feature`は、native imageのビルドの途中に割り込んで、処理を足すための仕組みである。ビルドのときに、次のことをする。
+
+- 今のプラットフォーム用の静的ライブラリを取り出し、「組み込みのJNIライブラリ」として登録する。これで、ネイティブメソッドがリンクの時点で確かめられる。
+- OSのライブラリのリンクの指定を足す。LinuxのGTKや、macOSのCocoaなどである。
+- `Application`の子クラスの、引数のないコンストラクタを、リフレクション用に登録する。`Application.launch`は、リフレクションでアプリのクラスを作るためである。
+- JavaFXのコードの一部を、置き換え（substitution）で差し替える。例は次の2つである。
+  - `System.loadLibrary`では、静的ライブラリを読み込めない。そこで、ライブラリの初期化の関数を直接呼ぶように差し替える。
+  - native imageは、JNIのメソッドを短い名前で解決する。そのため、オーバーロードされたネイティブメソッドを区別できない。これも差し替えで直す。
+
+### 版を合わせる理由
+
+- 静的ライブラリは、クラスパス上のJavaFXのjarと、**まったく同じコミット**から作られている必要がある。
+- ここからは推測である。Java側のコードとネイティブ側のコードは、JNIの名前とシグネチャで結び付いている。コミットがずれると、この結び付きがずれる可能性がある。
+- そのため、ビルドのときに版の一致が検査される。`27`のライブラリは、`27.0.1`のjarとは組み合わせられない。
+- 修正版の番号は、`${javafx.version}-${patch}`の形である。例えば`27-2`は、JavaFX `27`に対する2回目の修正である。
+
+### Mavenでの使い方（READMEの手順）
+
+1. GraalVM Build Toolsの`native-maven-plugin`を足し、`<mainClass>`を指定する。
+2. 依存に、次の2つを足す。
+   - `us.hebi.graalvm:jfx-static-feature:1.1.1`
+   - `us.hebi.graalvm:jfx-static-libs:${javafx.version}`（runtimeスコープ）
+3. `mvn -Pnative package`でビルドする。
+4. 含まれるメタデータは、JavaFXの分だけである。アプリ自身のリフレクションは、自分で登録する。
+
+### このアプリに関係しそうな点
+
+- Windowsでは、既定でコンソールのないGUIアプリとして作られるようである。コンソールを残すには、`-Djfx.static.gui=false`を指定する。
+  - これは、ウィンドウなしの起動のエラーをダイアログで知らせる判断（PR #12）と合っている。native imageでも、標準エラーは見えないためである。
+- メタデータの対象は、JavaFXだけである。次のものは、自分で登録する必要がある。
+  - FFMのdowncall
+  - AWTとImageIO
+  - AtlantaFXのCSS
+  - アプリのアイコン
+
+### Gluonとの違い
+
+READMEには、Gluonとの比較が書かれていない。この小節は知識による説明で、確かめてはいない。
+
+- Gluonは、JavaFX専用に調整したGraalVMと、Gluonが作った静的SDKを使う。
+- StaticFXは、普通のOracle GraalVMと、公式のJavaFXのタグからビルドした静的ライブラリを使う。
 
 ## 2. GitHub Actions
 
