@@ -1,6 +1,7 @@
 package com.sosuisha.presentation.screens.monitors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.sosuisha.domain.exception.RepositoryException;
 import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;
 import com.sosuisha.domain.model.Monitor;
@@ -318,6 +320,31 @@ class MonitorsViewModelTest {
         viewModel.loadMonitors();
 
         assertEquals("photos", viewModel.sourceNameProperty(LEFT_MONITOR).getValue());
+    }
+
+    @Test
+    @DisplayName("保存された設定を読み込めないとき、エラーになるが、モニター一覧は読み込まれる")
+    void a_failure_to_load_the_settings_is_an_error_but_the_monitors_are_still_loaded() {
+        var service = new NullWallpaperService() {
+            @Override
+            public List<Monitor> listMonitors() {
+                return List.of(LEFT_MONITOR);
+            }
+        };
+        var repository = new NullMonitorSettingsRepository() {
+            @Override
+            public Map<String, MonitorSettings> load() {
+                throw new RepositoryException("Cannot read the settings file", null);
+            }
+        };
+        var viewModel =
+            viewModel(
+                service, NAMING_COMPOSER, NO_IMAGE_PICKER, repository, new NullFolderOpener()
+            );
+
+        assertThrows(RepositoryException.class, viewModel::loadMonitors);
+
+        assertEquals(List.of(LEFT_MONITOR), viewModel.getMonitors());
     }
 
     @Test
