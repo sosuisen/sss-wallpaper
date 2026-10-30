@@ -203,7 +203,11 @@ public class MonitorsViewModel {
     /**
      * Loads the monitors from the service and sorts them from left to right.
      * The current wallpaper and the saved settings of each monitor are loaded
-     * too. Loading does not change any wallpaper.
+     * too. Loading does not change any wallpaper. If the saved settings
+     * cannot be read, the monitors are still loaded with the default settings.
+     *
+     * @throws com.sosuisha.domain.exception.RepositoryException if the saved settings cannot be
+     *                                                           read
      */
     public void loadMonitors() {
         var loaded = wallpaperService.listMonitors().stream()
@@ -213,11 +217,15 @@ public class MonitorsViewModel {
             knownMonitors.put(monitor.id(), monitor);
             wallpaper(monitor.id()).set(wallpaperService.getWallpaper(monitor.id()));
         }
-        restoreSettings(settingsRepository.load());
-        // The view builds the frames when the list changes, so the scale and
-        // the states of the frames must be ready before it.
-        frameScale = scaleToFit(loaded);
-        monitors.setAll(loaded);
+        try {
+            restoreSettings(settingsRepository.load());
+        } finally {
+            // The view builds the frames when the list changes, so the scale and
+            // the states of the frames must be ready before it. A broken settings
+            // file must not leave the screen without frames.
+            frameScale = scaleToFit(loaded);
+            monitors.setAll(loaded);
+        }
     }
 
     /**
