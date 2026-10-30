@@ -245,20 +245,22 @@ public class MonitorsViewModel {
         Objects.requireNonNull(files, "files must not be null");
         knownMonitors.put(monitor.id(), monitor);
         for (var file : files) {
+            // The steps that can fail come first, so a failure leaves the
+            // settings as they were.
             if (Files.isDirectory(file)) {
-                folder(monitor.id()).set(Optional.of(file));
                 var picked = imagePicker.pick(file);
+                picked.ifPresent(image -> applyWallpaper(monitor, image));
+                folder(monitor.id()).set(Optional.of(file));
                 picked.ifPresent(image -> sourceImage(monitor.id()).set(Optional.of(image)));
                 saveSettings();
-                picked.ifPresent(image -> applyWallpaper(monitor, image));
                 return;
             }
             if (ImageFiles.hasImageExtension(file)) {
+                applyWallpaper(monitor, file);
                 // A folder left registered would replace the dropped image on the next randomize.
                 folder(monitor.id()).set(Optional.empty());
                 sourceImage(monitor.id()).set(Optional.of(file));
                 saveSettings();
-                applyWallpaper(monitor, file);
                 return;
             }
         }
