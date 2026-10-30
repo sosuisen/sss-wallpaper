@@ -1,6 +1,7 @@
 package com.sosuisha.presentation.screens.monitors;
 
-import module java.base;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
 import com.sosuisha.domain.model.Alignment;
 import com.sosuisha.domain.model.FillColor;

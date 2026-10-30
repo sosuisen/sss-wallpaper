@@ -3,7 +3,11 @@ package com.sosuisha.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import module java.base;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.random.RandomGenerator;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

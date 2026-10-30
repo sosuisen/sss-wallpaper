@@ -1,6 +1,14 @@
 package com.sosuisha.repository;
 
-import module java.base;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 
 import com.sosuisha.domain.exception.RepositoryException;
 import com.sosuisha.domain.model.Alignment;

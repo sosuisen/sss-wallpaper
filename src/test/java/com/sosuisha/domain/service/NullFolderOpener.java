@@ -1,6 +1,6 @@
 package com.sosuisha.domain.service;
 
-import module java.base;
+import java.nio.file.Path;
 
 /**
  * A folder opener that opens nothing.

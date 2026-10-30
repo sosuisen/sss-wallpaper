@@ -1,6 +1,7 @@
 package com.sosuisha.domain.model;
 
-import module java.base;
+import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * A wallpaper that was changed on a monitor.

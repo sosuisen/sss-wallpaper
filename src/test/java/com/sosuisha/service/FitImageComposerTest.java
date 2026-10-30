@@ -5,10 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import module java.base;
-import module java.desktop;
-// java.desktop also has a List, so this import picks the one of java.util.
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

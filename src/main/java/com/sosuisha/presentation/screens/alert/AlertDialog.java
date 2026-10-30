@@ -1,6 +1,8 @@
 package com.sosuisha.presentation.screens.alert;
 
-import module java.base;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Objects;
 
 import io.github.sosuisen.jfxbuilder.controls.AlertBuilder;
 import io.github.sosuisen.jfxbuilder.controls.LabelBuilder;
