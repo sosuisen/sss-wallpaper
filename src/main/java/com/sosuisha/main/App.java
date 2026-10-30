@@ -49,7 +49,7 @@ public class App extends Application {
     public void start(Stage stage) {
         Objects.requireNonNull(stage, "stage must not be null");
         Thread.currentThread().setUncaughtExceptionHandler((_, e) -> showError(e));
-        setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
+        applyTheme();
         stage.getIcons().add(new Image(App.class.getResource(ICON_RESOURCE).toExternalForm()));
         var windowManager = new WindowManager();
         var monitorsViewModel = createMonitorsViewModel();
@@ -62,6 +62,14 @@ public class App extends Application {
             // and stops the app, so the error is shown here.
             showError(e);
         }
+    }
+
+    /**
+     * Applies the theme of the application. The launcher uses it too when it
+     * shows an error dialog without a window.
+     */
+    static void applyTheme() {
+        setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
     }
 
     private static void showError(Throwable e) {

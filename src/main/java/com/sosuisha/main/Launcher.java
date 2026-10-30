@@ -7,8 +7,6 @@ import com.sosuisha.domain.exception.UnrecoverableException;
 import com.sosuisha.domain.service.WallpaperChanger;
 import com.sosuisha.presentation.screens.alert.AlertDialog;
 
-import atlantafx.base.theme.PrimerLight;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 
@@ -46,7 +44,7 @@ public final class Launcher {
     // is still for a task scheduler.
     private static void showErrorAndExit(String message) {
         Platform.startup(() -> {
-            Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
+            App.applyTheme();
             AlertDialog.showError(message, () -> System.exit(1));
         });
     }
