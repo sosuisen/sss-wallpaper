@@ -1,8 +1,6 @@
 package com.sosuisha.presentation;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import module java.base;
 
 import javafx.stage.Stage;
 

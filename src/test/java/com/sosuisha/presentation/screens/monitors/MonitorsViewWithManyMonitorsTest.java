@@ -2,8 +2,7 @@ package com.sosuisha.presentation.screens.monitors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.List;
-import java.util.Optional;
+import module java.base;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

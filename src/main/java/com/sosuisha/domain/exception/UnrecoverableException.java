@@ -1,6 +1,6 @@
 package com.sosuisha.domain.exception;
 
-import java.util.Objects;
+import module java.base;
 
 import org.jspecify.annotations.Nullable;
 

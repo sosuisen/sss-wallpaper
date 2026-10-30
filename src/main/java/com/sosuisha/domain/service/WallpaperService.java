@@ -1,8 +1,6 @@
 package com.sosuisha.domain.service;
 
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
+import module java.base;
 
 import com.sosuisha.domain.exception.WallpaperException;
 import com.sosuisha.domain.model.Monitor;

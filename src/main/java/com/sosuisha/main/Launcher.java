@@ -1,7 +1,6 @@
 package com.sosuisha.main;
 
-import java.util.Arrays;
-import java.util.Objects;
+import module java.base;
 
 import com.sosuisha.domain.exception.UnrecoverableException;
 import com.sosuisha.domain.service.WallpaperChanger;

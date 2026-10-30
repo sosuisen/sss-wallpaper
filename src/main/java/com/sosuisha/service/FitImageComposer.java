@@ -1,14 +1,7 @@
 package com.sosuisha.service;
 
-import java.awt.Color;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Objects;
-
-import javax.imageio.ImageIO;
+import module java.base;
+import module java.desktop;
 
 import com.sosuisha.domain.exception.ImageComposeException;
 import com.sosuisha.domain.model.Alignment;

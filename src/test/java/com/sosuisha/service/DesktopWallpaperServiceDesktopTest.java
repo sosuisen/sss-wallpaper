@@ -2,12 +2,8 @@ package com.sosuisha.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Optional;
-
-import javax.imageio.ImageIO;
+import module java.base;
+import module java.desktop;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

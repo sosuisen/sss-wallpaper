@@ -1,11 +1,6 @@
 package com.sosuisha.service;
 
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import module java.base;
 
 import com.sosuisha.domain.exception.ImageComposeException;
 import com.sosuisha.domain.exception.UnrecoverableException;

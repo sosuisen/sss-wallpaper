@@ -1,7 +1,6 @@
 package com.sosuisha.domain.model;
 
-import java.util.Comparator;
-import java.util.Objects;
+import module java.base;
 
 /**
  * A monitor connected to the PC, placed on the virtual desktop.

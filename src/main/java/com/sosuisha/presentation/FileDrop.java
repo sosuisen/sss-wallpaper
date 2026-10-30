@@ -1,10 +1,6 @@
 package com.sosuisha.presentation;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
+import module java.base;
 
 import javafx.scene.Node;
 import javafx.scene.input.TransferMode;

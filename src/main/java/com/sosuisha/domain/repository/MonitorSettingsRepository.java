@@ -1,6 +1,6 @@
 package com.sosuisha.domain.repository;
 
-import java.util.Map;
+import module java.base;
 
 import com.sosuisha.domain.exception.RepositoryException;
 import com.sosuisha.domain.model.MonitorSettings;

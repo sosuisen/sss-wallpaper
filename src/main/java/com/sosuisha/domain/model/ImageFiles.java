@@ -1,9 +1,6 @@
 package com.sosuisha.domain.model;
 
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import module java.base;
 
 /**
  * Tells which files the app treats as images.
