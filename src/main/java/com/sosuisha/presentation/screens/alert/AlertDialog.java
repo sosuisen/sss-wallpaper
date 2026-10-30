@@ -8,15 +8,13 @@ import io.github.sosuisen.jfxbuilder.controls.AlertBuilder;
 import io.github.sosuisen.jfxbuilder.controls.LabelBuilder;
 import io.github.sosuisen.jfxbuilder.controls.TextAreaBuilder;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
 /**
  * Helper that shows common alert dialogs.
  */
 public final class AlertDialog {
-    private static final Runnable NOTHING = () -> {
-    };
-
     private AlertDialog() {}
 
     /**
@@ -29,7 +27,8 @@ public final class AlertDialog {
      * @throws NullPointerException if message is null
      */
     public static void showError(String message) {
-        showError(message, NOTHING);
+        Objects.requireNonNull(message, "message must not be null");
+        show("An error occurred", messageLabel(message));
     }
 
     /**
@@ -44,10 +43,7 @@ public final class AlertDialog {
     public static void showError(String message, Runnable onClosed) {
         Objects.requireNonNull(message, "message must not be null");
         Objects.requireNonNull(onClosed, "onClosed must not be null");
-        show(
-            "An error occurred", LabelBuilder.create().text(message).wrapText(true).build(),
-            onClosed
-        );
+        show("An error occurred", messageLabel(message)).setOnHidden(_ -> onClosed.run());
     }
 
     /**
@@ -66,20 +62,24 @@ public final class AlertDialog {
         exception.printStackTrace(new PrintWriter(stackTrace));
         show(
             "An unexpected error occurred",
-            TextAreaBuilder.create().text(stackTrace.toString()).editable(false).build(), NOTHING
+            TextAreaBuilder.create().text(stackTrace.toString()).editable(false).build()
         );
     }
 
-    private static void show(String headerText, Node details, Runnable onClosed) {
-        AlertBuilder.create(AlertType.ERROR)
+    private static Node messageLabel(String message) {
+        return LabelBuilder.create().text(message).wrapText(true).build();
+    }
+
+    private static Alert show(String headerText, Node details) {
+        var alert = AlertBuilder.create(AlertType.ERROR)
             .title("Error")
             .headerText(headerText)
-            .apply(alert -> {
-                alert.getDialogPane().setExpandableContent(details);
-                alert.getDialogPane().setExpanded(true);
-                alert.setOnHidden(_ -> onClosed.run());
+            .apply(a -> {
+                a.getDialogPane().setExpandableContent(details);
+                a.getDialogPane().setExpanded(true);
             })
-            .build()
-            .show();
+            .build();
+        alert.show();
+        return alert;
     }
 }
