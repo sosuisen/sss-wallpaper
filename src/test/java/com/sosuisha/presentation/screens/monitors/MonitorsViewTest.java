@@ -1,6 +1,7 @@
 package com.sosuisha.presentation.screens.monitors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import module java.base;
 
@@ -121,7 +122,7 @@ class MonitorsViewTest {
 
         var openLocation = robot.from(rightFrame).lookup("#openLocation").queryButton();
 
-        assertEquals(true, openLocation.isDisabled());
+        assertTrue(openLocation.isDisabled());
     }
 
     @Test

@@ -1,7 +1,9 @@
 package com.sosuisha.presentation.screens.monitors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import module java.base;
 
@@ -714,11 +716,11 @@ class MonitorsViewModelTest {
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
         var canOpen = viewModel.canOpenLocationProperty(LEFT_MONITOR);
-        assertEquals(false, canOpen.getValue());
+        assertFalse(canOpen.getValue());
 
         viewModel.dropFiles(LEFT_MONITOR, List.of(Path.of("pictures", "photo.png")));
 
-        assertEquals(true, canOpen.getValue());
+        assertTrue(canOpen.getValue());
     }
 
     private static NullMonitorSettingsRepository savingRepository(
