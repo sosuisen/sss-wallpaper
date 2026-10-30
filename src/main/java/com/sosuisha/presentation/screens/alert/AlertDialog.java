@@ -14,6 +14,9 @@ import javafx.scene.control.Alert.AlertType;
  * Helper that shows common alert dialogs.
  */
 public final class AlertDialog {
+    private static final Runnable NOTHING = () -> {
+    };
+
     private AlertDialog() {}
 
     /**
@@ -26,8 +29,7 @@ public final class AlertDialog {
      * @throws NullPointerException if message is null
      */
     public static void showError(String message) {
-        showError(message, () -> {
-        });
+        showError(message, NOTHING);
     }
 
     /**
@@ -64,8 +66,7 @@ public final class AlertDialog {
         exception.printStackTrace(new PrintWriter(stackTrace));
         show(
             "An unexpected error occurred",
-            TextAreaBuilder.create().text(stackTrace.toString()).editable(false).build(), () -> {
-            }
+            TextAreaBuilder.create().text(stackTrace.toString()).editable(false).build(), NOTHING
         );
     }
 
