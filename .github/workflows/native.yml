@@ -1,0 +1,45 @@
+name: Native
+
+on:
+  # A trial on this branch. Decide the real trigger after it works.
+  push:
+    branches: [docs/native-image-research]
+  workflow_dispatch:
+
+jobs:
+  native:
+    runs-on: windows-latest
+    steps:
+      # The Windows runner checks out with CRLF by default, but the formatter expects LF.
+      - run: git config --global core.autocrlf input
+
+      - uses: actions/checkout@v7
+
+      # Community Edition, because Oracle GraalVM needs the GFTC license checked before we ship it.
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: graalvm-community
+          version: '25.4'
+          java-version: '25'
+          cache: maven
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+
+      # The test job of ci.yml runs the tests on the JVM.
+      - name: Build the native image
+        run: mvn -B -Pnative package -DskipTests
+
+      # A missing registration in the metadata fails only at run time, not at build time.
+      - name: Run the native image without a window
+        shell: bash
+        run: ./target/sss-wallpaper.exe -Dsss.settings.file="$RUNNER_TEMP/settings.json" --randomize
+
+      # The exe does not run without the DLLs for AWT and ImageIO.
+      - name: Upload the native image
+        uses: actions/upload-artifact@v7
+        with:
+          name: sss-wallpaper-native-${{ github.sha }}
+          path: |
+            target/sss-wallpaper.exe
+            target/*.dll
+          retention-days: 7
