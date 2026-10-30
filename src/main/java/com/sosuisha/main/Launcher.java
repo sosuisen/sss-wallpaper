@@ -5,8 +5,12 @@ import java.util.Objects;
 
 import com.sosuisha.domain.exception.UnrecoverableException;
 import com.sosuisha.domain.service.WallpaperChanger;
+import com.sosuisha.presentation.screens.alert.AlertDialog;
+
+import atlantafx.base.theme.PrimerLight;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 
 /**
  * Entry point of the application.
@@ -20,7 +24,8 @@ public final class Launcher {
 
     /**
      * Application entry point. With {@value #RANDOMIZE_OPTION}, it changes the
-     * wallpapers at random and exits without showing a window.
+     * wallpapers at random and exits without showing a window. If that fails,
+     * it shows an error dialog and exits with code 1 when the dialog is closed.
      *
      * @param args command line arguments
      */
@@ -32,10 +37,18 @@ public final class Launcher {
         try {
             randomizeWithoutWindow(App.createWallpaperChanger());
         } catch (UnrecoverableException e) {
-            // No window shows the error, so the exit code tells a scheduler that it failed.
-            System.err.println(e.getMessage());
-            System.exit(1);
+            showErrorAndExit(e.getMessage());
         }
+    }
+
+    // A shortcut in the startup folder has no console and ignores the exit
+    // code, so only a dialog tells the user about the failure. The exit code
+    // is still for a task scheduler.
+    private static void showErrorAndExit(String message) {
+        Platform.startup(() -> {
+            Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
+            AlertDialog.showError(message, () -> System.exit(1));
+        });
     }
 
     /**
