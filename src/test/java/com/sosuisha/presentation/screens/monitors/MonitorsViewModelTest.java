@@ -723,26 +723,6 @@ class MonitorsViewModelTest {
         assertTrue(canOpen.getValue());
     }
 
-    private static NullMonitorSettingsRepository savingRepository(
-        List<Map<String, MonitorSettings>> saved) {
-        return new NullMonitorSettingsRepository() {
-            @Override
-            public void save(Map<String, MonitorSettings> settings) {
-                saved.add(settings);
-            }
-        };
-    }
-
-    private static NullMonitorSettingsRepository loadingRepository(
-        Map<String, MonitorSettings> settings) {
-        return new NullMonitorSettingsRepository() {
-            @Override
-            public Map<String, MonitorSettings> load() {
-                return settings;
-            }
-        };
-    }
-
     @Test
     @DisplayName("ランダム変更すると、フォルダが登録された全モニターの壁紙が、それぞれのフォルダからランダムに選んだ画像になる")
     void randomizing_sets_an_image_picked_from_its_own_folder_on_every_monitor_with_a_folder() {
@@ -891,5 +871,25 @@ class MonitorsViewModelTest {
             service, new ComposingWallpaperChanger(service, composer, picker, repository), picker,
             repository, opener
         );
+    }
+
+    private static NullMonitorSettingsRepository savingRepository(
+        List<Map<String, MonitorSettings>> saved) {
+        return new NullMonitorSettingsRepository() {
+            @Override
+            public void save(Map<String, MonitorSettings> settings) {
+                saved.add(settings);
+            }
+        };
+    }
+
+    private static NullMonitorSettingsRepository loadingRepository(
+        Map<String, MonitorSettings> settings) {
+        return new NullMonitorSettingsRepository() {
+            @Override
+            public Map<String, MonitorSettings> load() {
+                return settings;
+            }
+        };
     }
 }
