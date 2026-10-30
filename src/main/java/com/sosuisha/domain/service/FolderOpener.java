@@ -13,7 +13,8 @@ public interface FolderOpener {
      * Opens the given folder.
      *
      * @param folder folder to open
-     * @throws FolderOpenException if the folder cannot be opened
+     * @throws NullPointerException if folder is null
+     * @throws FolderOpenException  if the folder cannot be opened
      */
     void open(Path folder) throws FolderOpenException;
 }
