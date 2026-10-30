@@ -44,7 +44,7 @@ jobs:
           retention-days: 7
 
   package:
-    # A pull request does not need an app image to try.
+    # A pull request does not need an exe to try.
     if: github.event_name == 'push'
     needs: test
     runs-on: windows-latest
@@ -53,19 +53,30 @@ jobs:
 
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v6
+      # Community Edition, because Oracle GraalVM needs the GFTC license checked. See ADR 2.
+      - uses: graalvm/setup-graalvm@v1
         with:
-          distribution: temurin
+          distribution: graalvm-community
+          version: '25.4'
           java-version: '25'
           cache: maven
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # The test job has already run the tests on the same commit.
-      - name: Build the app image
-        run: mvn -B clean package -DskipTests
+      - name: Build the native exe
+        run: mvn -B -Pnative clean package -DskipTests
 
-      - name: Upload the app image
+      # A missing registration in the metadata fails only at run time, not at build time.
+      - name: Run the native exe without a window
+        shell: bash
+        run: ./target/sss-wallpaper.exe -Dsss.settings.file="$RUNNER_TEMP/settings.properties" --randomize
+
+      # The exe does not run without the DLLs for AWT and ImageIO.
+      - name: Upload the native exe
         uses: actions/upload-artifact@v7
         with:
           name: sss-wallpaper-${{ github.sha }}
-          path: target/jpackage/
+          path: |
+            target/sss-wallpaper.exe
+            target/*.dll
           retention-days: 7
