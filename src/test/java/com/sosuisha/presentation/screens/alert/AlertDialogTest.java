@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +41,19 @@ class AlertDialogTest {
         assertTrue(pane.isExpanded());
         var content = assertInstanceOf(Label.class, pane.getExpandableContent());
         assertEquals("The settings file cannot be read.", content.getText());
+    }
+
+    @Test
+    @DisplayName("エラーダイアログを閉じると、閉じたときの処理が呼ばれる")
+    void closing_the_error_dialog_runs_the_action_for_the_close(FxRobot robot) {
+        var closed = new AtomicBoolean(false);
+        robot.interact(
+            () -> AlertDialog.showError("The folder cannot be read.", () -> closed.set(true))
+        );
+
+        robot.clickOn("OK");
+
+        assertTrue(closed.get());
     }
 
     @Test

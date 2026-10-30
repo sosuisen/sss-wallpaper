@@ -8,6 +8,7 @@ import io.github.sosuisen.jfxbuilder.controls.AlertBuilder;
 import io.github.sosuisen.jfxbuilder.controls.LabelBuilder;
 import io.github.sosuisen.jfxbuilder.controls.TextAreaBuilder;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
 /**
@@ -27,7 +28,22 @@ public final class AlertDialog {
      */
     public static void showError(String message) {
         Objects.requireNonNull(message, "message must not be null");
-        show("An error occurred", LabelBuilder.create().text(message).wrapText(true).build());
+        show("An error occurred", messageLabel(message));
+    }
+
+    /**
+     * Shows an error alert dialog with the given message, and runs an action
+     * when the dialog is closed. Otherwise it is the same as
+     * {@link #showError(String)}.
+     *
+     * @param message  message shown in the dialog
+     * @param onClosed action that runs when the dialog is closed
+     * @throws NullPointerException if message or onClosed is null
+     */
+    public static void showError(String message, Runnable onClosed) {
+        Objects.requireNonNull(message, "message must not be null");
+        Objects.requireNonNull(onClosed, "onClosed must not be null");
+        show("An error occurred", messageLabel(message)).setOnHidden(_ -> onClosed.run());
     }
 
     /**
@@ -50,15 +66,20 @@ public final class AlertDialog {
         );
     }
 
-    private static void show(String headerText, Node details) {
-        AlertBuilder.create(AlertType.ERROR)
+    private static Node messageLabel(String message) {
+        return LabelBuilder.create().text(message).wrapText(true).build();
+    }
+
+    private static Alert show(String headerText, Node details) {
+        var alert = AlertBuilder.create(AlertType.ERROR)
             .title("Error")
             .headerText(headerText)
-            .apply(alert -> {
-                alert.getDialogPane().setExpandableContent(details);
-                alert.getDialogPane().setExpanded(true);
+            .apply(a -> {
+                a.getDialogPane().setExpandableContent(details);
+                a.getDialogPane().setExpanded(true);
             })
-            .build()
-            .show();
+            .build();
+        alert.show();
+        return alert;
     }
 }

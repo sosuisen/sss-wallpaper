@@ -111,9 +111,10 @@ Windowsの「Fit」は、画像を常に中央に置きます。左寄せや右�
 
 ### ウィンドウなしの起動（`--randomize`）
 
-1. `Launcher.main`が、`App.createWallpaperChanger()`で`WallpaperChanger`だけを作ります。JavaFXは起動しません。ViewModelも作りません。
+1. `Launcher.main`が、`App.createWallpaperChanger()`で`WallpaperChanger`だけを作ります。成功したときは、JavaFXを起動しません。ViewModelも作りません。
 2. `WallpaperChanger.randomizeAll()`を呼びます。処理は「ランダム変更」と同じです。
-3. `UnrecoverableException`が起きたら、メッセージを標準エラー出力に書き、終了コード1で終わります。
+3. `UnrecoverableException`が起きたら、`Platform.startup`でJavaFXを起動します。`App.applyTheme()`でテーマを当て、`AlertDialog.showError`でメッセージのダイアログを出します。
+4. ダイアログが閉じられたら、終了コード1で終わります。
 
 ### 画像やフォルダのドロップ
 
@@ -158,7 +159,7 @@ ComboBoxとViewModelのPropertyは、双方向にバインドしています。�
 
 回復できないエラーは、`UnrecoverableException`の子クラスで表します。
 
-- ウィンドウなしの起動では、`Launcher`がメッセージを出して終了コード1で終わります。
+- ウィンドウなしの起動では、`Launcher`がエラーダイアログを出します。ダイアログが閉じられたら、終了コード1で終わります。
 - ウィンドウありの起動では、`App.start()`の冒頭で、FXスレッドの未捕捉例外のハンドラを登録します。ドロップ、ComboBoxの変更、ランダム変更、場所を開く、のどれで起きた例外も、このハンドラに届きます。
   - `UnrecoverableException`なら、`AlertDialog.showError`で、そのメッセージのダイアログを出します。
   - それ以外の例外はバグです。スタックトレースを標準エラー出力に書いてから、`AlertDialog.showUnexpectedError`で、スタックトレースのダイアログを出します。
