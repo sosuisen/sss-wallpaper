@@ -188,7 +188,7 @@ class MonitorsViewModelTest {
     @DisplayName("フォルダをドロップすると、フォルダの中からランダムに選んだ1枚が壁紙に設定される")
     void dropping_a_folder_sets_an_image_picked_at_random_from_the_folder_as_the_wallpaper()
         throws IOException {
-        var folder = Files.createDirectory(tempDir.resolve("photos.png"));
+        var folder = Files.createDirectory(tempDir.resolve("photos"));
         var wallpapers = new ArrayList<String>();
         ImagePicker picker = from -> Optional.of(from.resolve("picked.jpg"));
         var viewModel = viewModel(
