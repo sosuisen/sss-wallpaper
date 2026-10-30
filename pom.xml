@@ -10,13 +10,12 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <javafx.plugin.version>0.0.8</javafx.plugin.version>
-    <javafx.version>27.0.1</javafx.version>
+    <!-- The static JavaFX libraries for the native exe must come from the same
+         commit as the JavaFX jars, and none exist for 27.0.1 yet. See ADR 2. -->
+    <javafx.version>27</javafx.version>
     <javafx.builder.version>27.0.0</javafx.builder.version>
     <maven.compiler.release>25</maven.compiler.release>
     <main.class>com.sosuisha.main.Launcher</main.class>
-    <!-- Version of the exe. The release workflow overrides it with the Git tag,
-         so this default is used only by local builds. -->
-    <app.version>1.0.0</app.version>
     <jspecify.version>1.0.1</jspecify.version>
     <atlantafx.version>3.0.0</atlantafx.version>
     <errorprone.version>2.51.0</errorprone.version>
@@ -268,96 +267,6 @@
           </options>
         </configuration>
       </plugin>
-      <!-- mvn package makes an app image with jpackage under target/jpackage/. -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.11.0</version>
-        <executions>
-          <execution>
-            <id>copy-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/app/lib</outputDirectory>
-              <includeScope>runtime</includeScope>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.5.1</version>
-        <configuration>
-          <outputDirectory>${project.build.directory}/app</outputDirectory>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>${main.class}</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.panteleyev</groupId>
-        <artifactId>jpackage-maven-plugin</artifactId>
-        <version>1.8.0</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>jpackage</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <name>sss-wallpaper</name>
-          <appVersion>${app.version}</appVersion>
-          <vendor>${project.groupId}</vendor>
-          <input>${project.build.directory}/app/</input>
-          <mainJar>${project.artifactId}-${project.version}.jar</mainJar>
-          <destination>${project.build.directory}/jpackage</destination>
-          <icon>${project.basedir}/images/icon.ico</icon>
-          <javaOptions>
-            <option>-Dfile.encoding=UTF-8</option>
-            <!-- DesktopWallpaperService calls restricted FFM methods. -->
-            <option>--enable-native-access=ALL-UNNAMED</option>
-          </javaOptions>
-          <type>APP_IMAGE</type>
-        </configuration>
-      </plugin>
-      <!-- jpackage makes a read-only exe on Windows, and then mvn clean fails.
-           Removing the read-only attribute keeps mvn clean working. -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.6.4</version>
-        <executions>
-          <execution>
-            <id>remove-readonly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>attrib</executable>
-              <arguments>
-                <argument>-R</argument>
-                <argument>/S</argument>
-                <argument>${project.build.directory}\jpackage\*.*</argument>
-              </arguments>
-              <successCodes>
-                <successCode>0</successCode>
-                <successCode>1</successCode>
-              </successCodes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
@@ -369,14 +278,11 @@
         <test.groups>desktop</test.groups>
       </properties>
     </profile>
-    <!-- mvn -Pnative package makes a native exe with GraalVM under target/.
-         It needs GraalVM 25.4 as JAVA_HOME. See docs/native-image-research.md. -->
+    <!-- mvn -Pnative package makes the native exe under target/.
+         It needs GraalVM CE 25.4 as JAVA_HOME. See ADR 2. -->
     <profile>
       <id>native</id>
       <properties>
-        <!-- The static JavaFX libraries must come from the same commit as the
-             JavaFX jars, and no static libraries exist for 27.0.1 yet. -->
-        <javafx.version>27</javafx.version>
         <jfx.static.libs.version>27-2</jfx.static.libs.version>
       </properties>
       <dependencies>
@@ -414,39 +320,10 @@
               <buildArgs>
                 <!-- DesktopWallpaperService calls restricted FFM methods. -->
                 <buildArg>--enable-native-access=ALL-UNNAMED</buildArg>
+                <!-- Embeds the icon in the exe. See src/windows/sss-wallpaper.rc. -->
+                <buildArg>-H:NativeLinkerOption=${project.basedir}/src/windows/sss-wallpaper.res</buildArg>
               </buildArgs>
             </configuration>
-          </plugin>
-          <!-- The native exe replaces the app image of jpackage. -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>copy-dependencies</id>
-                <phase>none</phase>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.panteleyev</groupId>
-            <artifactId>jpackage-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>default</id>
-                <phase>none</phase>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>remove-readonly</id>
-                <phase>none</phase>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>

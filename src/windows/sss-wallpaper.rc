@@ -1,0 +1,6 @@
+// Icon of sss-wallpaper.exe. Explorer shows the icon with the lowest ID.
+// The path is relative to this file.
+// The compiled sss-wallpaper.res is committed, because rc.exe is not on the PATH
+// of a normal shell or of CI. Compile it again after changing the icon:
+//   rc /fo sss-wallpaper.res sss-wallpaper.rc
+1 ICON "..\..\images\icon.ico"
