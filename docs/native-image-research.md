@@ -2,7 +2,7 @@
 
 2026-10-31に調べた結果である。GraalVMのnative imageで、単体の`.exe`を作る方法を調べた。今のCIのjpackageは、JDKを同梱したアプリのフォルダを作るもので、これとは別物である。
 
-この文書は、調べた時点の記録である。版や対応状況は変わるので、試す前に出典を確かめ直すこと。ファイルの変更はまだしていない。
+この文書は、調べた時点の記録である。版や対応状況は変わるので、試す前に出典を確かめ直すこと。同じ日に手元で試した結果は、「5. 手元で試した結果」に書いた。
 
 ## 調べたときのアプリの構成
 
@@ -215,6 +215,86 @@ CIより先に、手元で動くかを確かめる。
 4. 次に、トレーシングエージェントでメタデータを集め、`--randomize`の経路を確かめる。FFMとImageIOが動くかが、ここで分かる。
 
 手元で動いてから、CIに載せる。
+
+## 5. 手元で試した結果
+
+2026-10-31に、手元のWindows 11で試した。GUI、`--randomize`、エラーダイアログのどれも、ネイティブのexeで動いた。
+
+### 使った道具
+
+- GraalVM CE 25.4（`graal-25.4.4.1.1`、JDK 25.0.4）を使った。Oracle GraalVMではない。
+  - SDKMANでOracle GraalVM 25.4を入れようとしたが、Windows用のファイルが404で取れなかった。
+  - Oracleの`25/latest`は25.0.4で、25.4ではなかった。
+  - CEはGitHubのリリースから取り、sha256を確かめた。
+- CEのライセンスはGPLv2とClasspath Exceptionである。GFTCの条件を確かめる必要は、CEを使う限りなくなる。
+- `JAVA_HOME`にCEを指定し、`mvn -Pnative clean package -DskipTests`でビルドした。既定のJDKは、Temurinのままでよい。
+- C言語のコンパイラは、Visual Studio 2022の`cl.exe`（19.44）が自動で見つかった。
+
+### `native`プロファイル
+
+`pom.xml`に`native`プロファイルを足した。
+
+- JavaFXを`27`にし、`jfx-static-feature` 1.1.1と`jfx-static-libs` 27-2を足す。
+- `native-maven-plugin` 1.1.18で、`package`の段階にexeを作る。
+- `--enable-native-access=ALL-UNNAMED`を渡す。
+- jpackage用の処理（依存のコピー、jpackage、読み取り専用の解除）は、このプロファイルでは止める。
+
+### メタデータなしでのビルド
+
+- ビルドは通り、44MBのexeができた。
+- 実行すると、次の2つで失敗した。
+  - `DesktopWallpaperService`の初期化で、`MissingForeignRegistrationError`が出た。FFMのdowncallのシグネチャが登録されていないためである。
+  - AtlantaFXのCSS（`/atlantafx/base/theme/primer-light.css`）が見つからなかった。
+
+### トレーシングエージェント
+
+- GraalVMのJVMで、`-agentlib:native-image-agent=config-merge-dir=src/main/resources/META-INF/native-image/com.sosuisha/sss-wallpaper`を付けて起動した。
+  - `config-merge-dir`にしたのは、3回の実行の結果を1つのファイルにまとめるためである。
+- クラスパスは、`target/classes`と、JavaFX、javafx-builder、AtlantaFX、JSpecifyのjarにした。
+  - `dependency:build-classpath`の結果には、テスト用のjarも混ざっていた。それらは手で除いた。
+- 次の3つの経路を通した。
+  - 通常のGUI。ドロップ、壁紙の設定、「場所を開く」を手で操作した。
+  - `--randomize`
+  - エラーダイアログ。`-Dsss.settings.file`にフォルダを指定し、設定の読み込みを失敗させた。
+- 結果は、161KBの`reachability-metadata.json`になった。
+- エージェントは、FFMのdowncallも`foreign.downcalls`に記録した。「3. このアプリに特有の危険」の推測は当たっていた。手で書く必要はなかった。
+
+### メタデータありでのビルド
+
+- ビルドは47秒で通り、52MBのexeができた。
+- `--randomize`は、終了コード0で終わり、壁紙が変わった。
+- GUIでは、次のすべてが動いた。
+  - AtlantaFXのテーマ
+  - ウィンドウのアイコン
+  - 画像のドロップと壁紙の設定。ここで、AWTと`ImageIO`も動いた。
+  - 「場所を開く」
+- 「4. 判断と最初の一歩」の障害2（`java.awt`と`ImageIO`）は、Windowsでは問題にならなかった。
+- 実行すると、`Unsupported JavaFX configuration: classes were loaded from 'unnamed module ...'`という警告が出る。JavaFXをクラスパスから読むと出る警告で、JVMで動かしたときも同じである。
+
+### 配布するときの注意
+
+exeの隣に、次のDLLが出力された。AWTと`ImageIO`を使うためである。
+
+`awt.dll` `fontmanager.dll` `freetype.dll` `java.dll` `javaaccessbridge.dll` `javajpeg.dll` `jawt.dll` `jvm.dll` `lcms.dll`
+
+exe単体では動かない見込みである。配布するときは、これらのDLLも一緒に置く。
+
+### トレーシングをやり直す場面
+
+メタデータは、リポジトリにコミットしておく。`native-image`は、ビルドのたびに`META-INF/native-image/`の下から自動で読む。そのため、毎回トレーシングする必要はない。
+
+やり直すのは、ネイティブイメージから見える動的な使い方が増えたときである。
+
+- FFMで、これまでにない形の関数を呼ぶ。引数や戻り値の型の組み合わせが新しい場合である。
+- CSSや画像など、新しいリソースを読む。
+- 新しいJavaFXのコントロールを使う。CSSの処理などで、リフレクションが使われることがある。
+- JavaFXやAtlantaFXの版を上げる。
+
+やり直しを忘れても、ビルドは通る。足りないことが分かるのは、exeを実行したときである。そこで、CIでexeを`--randomize`で1回起動する確認を入れるとよい。ただし、CIのマシンで壁紙のAPIが動くかは、まだ確かめていない。
+
+### 次の一歩
+
+CIに載せる。「2. GitHub Actions」の案を、CEで動くように直して試す。
 
 ## 出典
 
