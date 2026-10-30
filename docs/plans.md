@@ -13,13 +13,13 @@
   - [x] 左端のx座標が同じモニターは、上端のy座標が小さい順に並ぶ
 - [x] 回復できないエラーは、空のメッセージを受け付けない
   - [x] 空白だけのメッセージでは作れない
-- [ ] 振る舞いを変えずに直す指摘
-  - [ ] 例外の発生源に`@throws`と`throws`句を書く
-  - [ ] `FolderOpener`のJavadocに`@throws NullPointerException`を書く
-  - [ ] staticメンバーだけのクラスに`final`を付ける
-  - [ ] `import module`を使う
-  - [ ] テストの一時フォルダを`@TempDir`にする
-  - [ ] `photos.png`というフォルダ名のテストの意図を名前に表す
-  - [ ] `assertEquals(true/false, ...)`を`assertTrue`／`assertFalse`にする
-  - [ ] テストの補助メソッドをファイルの末尾に移す
-  - [ ] フォーマッターの設定ファイル名を`java-formatter.xml`にする
+- [x] 振る舞いを変えずに直す指摘
+  - [x] 例外の発生源に`@throws`と`throws`句を書く
+  - [x] `FolderOpener`のJavadocに`@throws NullPointerException`を書く
+  - [x] staticメンバーだけのクラスに`final`を付ける
+  - [x] `import module`を使う
+  - [x] テストの一時フォルダを`@TempDir`にする
+  - [x] `photos.png`というフォルダ名のテストの意図を名前に表す
+  - [x] `assertEquals(true/false, ...)`を`assertTrue`／`assertFalse`にする
+  - [x] テストの補助メソッドをファイルの末尾に移す
+  - [x] フォーマッターの設定ファイル名を`java-formatter.xml`にする
