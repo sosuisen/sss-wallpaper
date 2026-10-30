@@ -74,6 +74,30 @@ class MonitorsViewModelTest {
     }
 
     @Test
+    @DisplayName("左端のx座標が同じモニターは、上端のy座標が小さい順に並ぶ")
+    void monitors_with_the_same_left_edge_are_sorted_by_the_y_coordinate_of_the_top_edge() {
+        var service = new NullWallpaperService() {
+            @Override
+            public List<Monitor> listMonitors() {
+                return List.of(
+                    new Monitor("lower", 0, 1080, 1920, 1080),
+                    new Monitor("upper", 0, -1080, 1920, 1080),
+                    new Monitor("middle", 0, 0, 1920, 1080)
+                );
+            }
+        };
+        var viewModel = viewModel(
+            service, NAMING_COMPOSER, NO_IMAGE_PICKER, new NullMonitorSettingsRepository(),
+            new NullFolderOpener()
+        );
+
+        viewModel.loadMonitors();
+
+        var ids = viewModel.getMonitors().stream().map(Monitor::id).toList();
+        assertEquals(List.of("upper", "middle", "lower"), ids);
+    }
+
+    @Test
     @DisplayName("ドロップすると、モニターの大きさと寄せ方で合成した画像が壁紙に設定される")
     void dropping_an_image_sets_the_image_composed_for_the_monitor_size_and_alignment() {
         var wallpapers = new ArrayList<String>();
