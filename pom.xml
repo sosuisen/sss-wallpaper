@@ -267,7 +267,7 @@
             <format>svg</format>
           </formats>
           <!-- 1.0.1 ignores this parameter with a warning. It takes effect from 1.0.2. -->
-          <maxCardWidth>180</maxCardWidth>
+          <maxCardWidth>160</maxCardWidth>
         </configuration>
         <!-- Draws docs/storymap.svg from docs/storymap.md in the compile phase,
              so that the picture never falls behind the outline. -->
