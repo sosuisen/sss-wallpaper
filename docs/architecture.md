@@ -172,4 +172,6 @@ ComboBoxとViewModelのPropertyは、双方向にバインドしています。�
   - [ADR 1: IDesktopWallpaper COM via FFM API](adr/adr-001-idesktopwallpaper-via-ffm.md)
 - クラス図：[classdiagram.svg](classdiagram.svg)（ビルドで自動生成）
 - リアクティブな依存の図：[reactive-dependencies.png](reactive-dependencies.png)（元のファイルは`reactive-dependencies.drawio`）
-- ストーリーマップ：[storymap.md](storymap.md)
+- ストーリーマップ：[storymap.md](storymap.md)。図は[storymap.svg](storymap.svg)（ビルドで`storymap.md`から自動生成）
+
+  ![ストーリーマップ](storymap.svg)
