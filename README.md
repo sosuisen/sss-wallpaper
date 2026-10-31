@@ -1,10 +1,10 @@
-開発者が個人用に作成したツールのため、利用はお勧めしません。
-
 # sss-wallpaper
 
 Windowsのモニターごとに、別の壁紙を設定するJavaFXアプリです。
 
 画像ファイルをモニターの枠へドロップすると、すぐにPCの壁紙へ反映されます。画像は縦横比を保ってFitし、左寄せか右寄せを選べます。余白を埋める色は、白か黒を選べます。
+
+<img src="docs/screenshot.png" width="480">
 
 ## 使い方
 
@@ -78,14 +78,14 @@ mvn javafx:run -Djavafx.args="--randomize"
 アプリがファイルを書くのは、`~/.sss-wallpaper/`の下だけです。
 
 | 場所 | 内容 |
-|---|---|
+| --- | --- |
 | `~/.sss-wallpaper/settings.properties` | モニターごとの設定 |
 | `~/.sss-wallpaper/wallpapers/` | 合成した壁紙の画像 |
 
 Windowsは、壁紙の設定を次の場所に保存します。
 
 | 場所 | 内容 |
-|---|---|
+| --- | --- |
 | `HKCU\Control Panel\Desktop` | 壁紙の画像のパスと、表示のしかた。`TranscodedImageCache_000`などに、モニターごとの画像のパスが入る |
 | `%APPDATA%\Microsoft\Windows\Themes\` | Windowsがコピーした壁紙の画像。`Transcoded_000`などがモニターごとの画像 |
 | `HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers` | 設定画面の「最近使った画像」の履歴 |
