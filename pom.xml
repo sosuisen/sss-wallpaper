@@ -257,6 +257,28 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>com.sosuisha</groupId>
+        <artifactId>storymap-maven-plugin</artifactId>
+        <version>1.0.1</version>
+        <configuration>
+          <input>${project.basedir}/docs/storymap.md</input>
+          <outputDirectory>${project.basedir}/docs</outputDirectory>
+          <formats>
+            <format>svg</format>
+          </formats>
+        </configuration>
+        <!-- Draws docs/storymap.svg from docs/storymap.md in the compile phase,
+             so that the picture never falls behind the outline. -->
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>render</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-maven-plugin</artifactId>
         <version>${javafx.plugin.version}</version>
