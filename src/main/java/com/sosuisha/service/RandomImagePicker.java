@@ -29,8 +29,9 @@ public class RandomImagePicker implements ImagePicker {
     }
 
     @Override
-    public Optional<Path> pick(Path folder) throws FolderReadException {
+    public Optional<Path> pick(Path folder, Optional<Path> avoid) throws FolderReadException {
         Objects.requireNonNull(folder, "folder must not be null");
+        Objects.requireNonNull(avoid, "avoid must not be null");
         // Sorted, because the order of Files.list is not defined and the
         // same random number should pick the same file.
         try (var files = Files.list(folder)) {
