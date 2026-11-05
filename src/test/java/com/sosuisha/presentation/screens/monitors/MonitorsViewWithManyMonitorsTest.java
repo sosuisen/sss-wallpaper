@@ -43,7 +43,7 @@ class MonitorsViewWithManyMonitorsTest {
             }
         };
         var viewModel = new MonitorsViewModel(
-            service, new NullWallpaperChanger(), _ -> Optional.empty(),
+            service, new NullWallpaperChanger(), (_, _) -> Optional.empty(),
             new NullMonitorSettingsRepository(), new NullFolderOpener()
         );
         var windowManager = new WindowManager();

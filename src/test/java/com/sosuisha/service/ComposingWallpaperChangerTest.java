@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +36,7 @@ class ComposingWallpaperChangerTest {
         );
 
     private static final ImagePicker PICK_RANDOM_PNG =
-        folder -> Optional.of(folder.resolve("random.png"));
+        (folder, _) -> Optional.of(folder.resolve("random.png"));
 
     @Test
     @DisplayName("壁紙を変えると、モニターの大きさと寄せ方と埋める色で合成した画像が設定され、その画像が返る")
@@ -101,6 +102,40 @@ class ComposingWallpaperChangerTest {
     }
 
     @Test
+    @DisplayName("ランダム変更は、モニターごとの現在の画像を除いて選ぶ")
+    void randomizing_avoids_the_current_image_of_each_monitor() {
+        var avoided = new HashMap<Path, Optional<Path>>();
+        ImagePicker recordingPicker = (folder, avoid) -> {
+            avoided.put(folder, avoid);
+            return Optional.of(folder.resolve("random.png"));
+        };
+        var leftCurrent = Path.of("left-photos", "current.png");
+        var changer = new ComposingWallpaperChanger(
+            recordingService(new ArrayList<>(), LEFT_MONITOR, RIGHT_MONITOR), NAMING_COMPOSER,
+            recordingPicker,
+            recordingRepository(
+                new ArrayList<>(),
+                Map.of(
+                    "left", new MonitorSettings(
+                        Optional.of(Path.of("left-photos")), Optional.of(leftCurrent),
+                        Alignment.LEFT, FillColor.WHITE
+                    ), "right", folderSettings("right-photos", Alignment.RIGHT)
+                )
+            )
+        );
+
+        changer.randomizeAll();
+
+        assertEquals(
+            Map.of(
+                Path.of("left-photos"), Optional.of(leftCurrent), Path.of("right-photos"),
+                Optional.empty()
+            ),
+            avoided
+        );
+    }
+
+    @Test
     @DisplayName("ランダムに選んだ画像は、壁紙を変える前に、元の画像として保存される")
     void the_picked_image_is_saved_as_the_source_image_before_the_wallpaper_changes() {
         var events = new ArrayList<String>();
@@ -161,7 +196,7 @@ class ComposingWallpaperChangerTest {
     void when_no_image_is_picked_nothing_is_saved_and_no_wallpaper_changes() {
         var events = new ArrayList<String>();
         var changer = new ComposingWallpaperChanger(
-            recordingService(events, LEFT_MONITOR), NAMING_COMPOSER, _ -> Optional.empty(),
+            recordingService(events, LEFT_MONITOR), NAMING_COMPOSER, (_, _) -> Optional.empty(),
             recordingRepository(events, Map.of("left", folderSettings("empty", Alignment.LEFT)))
         );
 

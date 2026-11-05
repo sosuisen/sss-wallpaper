@@ -29,8 +29,9 @@ public class RandomImagePicker implements ImagePicker {
     }
 
     @Override
-    public Optional<Path> pick(Path folder) throws FolderReadException {
+    public Optional<Path> pick(Path folder, Optional<Path> avoid) throws FolderReadException {
         Objects.requireNonNull(folder, "folder must not be null");
+        Objects.requireNonNull(avoid, "avoid must not be null");
         // Sorted, because the order of Files.list is not defined and the
         // same random number should pick the same file.
         try (var files = Files.list(folder)) {
@@ -40,7 +41,10 @@ public class RandomImagePicker implements ImagePicker {
                 .sorted(Comparator.naturalOrder())
                 .toList();
             if (images.isEmpty()) { return Optional.empty(); }
-            return Optional.of(images.get(random.nextInt(images.size())));
+            var others =
+                images.stream().filter(image -> !avoid.equals(Optional.of(image))).toList();
+            var candidates = others.isEmpty() ? images : others;
+            return Optional.of(candidates.get(random.nextInt(candidates.size())));
         } catch (IOException e) {
             throw new FolderReadException("Cannot read the folder: " + folder, e);
         }

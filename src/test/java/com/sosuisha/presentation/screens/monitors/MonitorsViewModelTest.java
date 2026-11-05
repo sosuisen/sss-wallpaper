@@ -46,9 +46,9 @@ class MonitorsViewModelTest {
                 + alignment + "-" + fillColor
         );
 
-    private static final ImagePicker NO_IMAGE_PICKER = _ -> Optional.empty();
+    private static final ImagePicker NO_IMAGE_PICKER = (_, _) -> Optional.empty();
     private static final ImagePicker PICK_RANDOM_PNG =
-        folder -> Optional.of(folder.resolve("random.png"));
+        (folder, _) -> Optional.of(folder.resolve("random.png"));
 
     @TempDir
     Path tempDir;
@@ -372,7 +372,7 @@ class MonitorsViewModelTest {
         throws IOException {
         var folder = Files.createDirectory(tempDir.resolve("photos"));
         var wallpapers = new ArrayList<String>();
-        ImagePicker picker = from -> Optional.of(from.resolve("picked.jpg"));
+        ImagePicker picker = (from, _) -> Optional.of(from.resolve("picked.jpg"));
         var viewModel = viewModel(
             recordingService(wallpapers), NAMING_COMPOSER, picker,
             new NullMonitorSettingsRepository(), new NullFolderOpener()
@@ -381,6 +381,26 @@ class MonitorsViewModelTest {
         viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
 
         assertEquals(List.of("left:picked.jpg@1920x1080-LEFT-WHITE"), wallpapers);
+    }
+
+    @Test
+    @DisplayName("フォルダをドロップするときは、現在の画像も候補に残る")
+    void dropping_a_folder_keeps_the_current_image_among_the_candidates() throws IOException {
+        var folder = Files.createDirectory(tempDir.resolve("photos"));
+        var avoided = new ArrayList<Optional<Path>>();
+        ImagePicker picker = (from, avoid) -> {
+            avoided.add(avoid);
+            return Optional.of(from.resolve("picked.jpg"));
+        };
+        var viewModel = viewModel(
+            new NullWallpaperService(), NAMING_COMPOSER, picker,
+            new NullMonitorSettingsRepository(), new NullFolderOpener()
+        );
+        viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
+
+        viewModel.dropFiles(LEFT_MONITOR, List.of(folder));
+
+        assertEquals(List.of(Optional.empty(), Optional.empty()), avoided);
     }
 
     @Test
@@ -404,7 +424,7 @@ class MonitorsViewModelTest {
     @DisplayName("フォルダから画像を選べないとき、フォルダは登録されない")
     void a_folder_that_cannot_be_read_is_not_registered() throws IOException {
         var folder = Files.createDirectory(tempDir.resolve("locked"));
-        ImagePicker picker = from -> {
+        ImagePicker picker = (from, _) -> {
             throw new FolderReadException("Cannot read the folder: " + from, null);
         };
         var viewModel = viewModel(
@@ -526,7 +546,7 @@ class MonitorsViewModelTest {
         throws IOException {
         var folder = Files.createDirectory(tempDir.resolve("photos"));
         var wallpapers = new ArrayList<String>();
-        ImagePicker picker = from -> Optional.of(from.resolve("picked.jpg"));
+        ImagePicker picker = (from, _) -> Optional.of(from.resolve("picked.jpg"));
         var viewModel = viewModel(
             recordingService(wallpapers), NAMING_COMPOSER, picker,
             new NullMonitorSettingsRepository(), new NullFolderOpener()

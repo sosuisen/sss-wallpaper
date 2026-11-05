@@ -77,7 +77,7 @@ class MonitorsViewTest {
                 );
             }
         };
-        ImagePicker picker = folder -> Optional.of(folder.resolve("random.png"));
+        ImagePicker picker = (folder, _) -> Optional.of(folder.resolve("random.png"));
         viewModel = new MonitorsViewModel(
             service,
             new ComposingWallpaperChanger(service, new NullImageComposer(), picker, repository),
