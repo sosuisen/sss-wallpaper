@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -119,6 +120,55 @@ class FitImageComposerTest {
     }
 
     @Test
+    @DisplayName("古い合成画像を別のプロセスが開いていて消せないとき、新しい画像を保存し、古い画像は残る")
+    void a_new_image_is_saved_and_the_old_one_remains_when_another_process_holds_the_old_one()
+        throws IOException {
+        var composer = new FitImageComposer(tempDir.resolve("out"));
+        var source = writeRedPng("source.png", 50, 100);
+        var old = composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE);
+
+        try (var _ = holdWithoutDeleteSharing(old)) {
+            var composed = composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE);
+
+            assertTrue(Files.exists(composed));
+            assertTrue(Files.exists(old));
+        }
+    }
+
+    @Test
+    @DisplayName("消せない古い合成画像があっても、ほかの古い合成画像は消える")
+    void other_old_images_are_deleted_even_when_one_old_image_cannot_be_deleted()
+        throws IOException {
+        var composer = new FitImageComposer(tempDir.resolve("out"));
+        var source = writeRedPng("source.png", 50, 100);
+        var held = composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE);
+
+        try (var _ = holdWithoutDeleteSharing(held)) {
+            var deletable = composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE);
+
+            composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE);
+
+            assertFalse(Files.exists(deletable));
+        }
+    }
+
+    @Test
+    @DisplayName("消せなかった古い合成画像は、解放されたあとの合成で消える")
+    void an_old_image_that_could_not_be_deleted_is_deleted_by_a_compose_after_its_release()
+        throws IOException {
+        var composer = new FitImageComposer(tempDir.resolve("out"));
+        var source = writeRedPng("source.png", 50, 100);
+        var old = composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE);
+        try (var _ = holdWithoutDeleteSharing(old)) {
+            composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE);
+        }
+
+        composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE);
+
+        assertFalse(Files.exists(old));
+    }
+
+    @Test
     @DisplayName("画像として読めないファイルを合成しようとすると、ImageComposeExceptionを投げる")
     void composing_a_file_that_is_not_an_image_throws_image_compose_exception() throws IOException {
         var composer = new FitImageComposer(tempDir.resolve("out"));
@@ -165,6 +215,14 @@ class FitImageComposerTest {
             ImageComposeException.class,
             () -> composer.compose(source, WIDE_MONITOR, Alignment.LEFT, FillColor.WHITE)
         );
+    }
+
+    /**
+     * Opens a file as another process would. On Windows, FileInputStream does
+     * not share delete access, so the file cannot be deleted while it is open.
+     */
+    private static FileInputStream holdWithoutDeleteSharing(Path file) throws IOException {
+        return new FileInputStream(file.toFile());
     }
 
     private static BufferedImage redImage(int width, int height) {
