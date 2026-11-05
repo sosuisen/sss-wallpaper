@@ -12,13 +12,13 @@
     <javafx.plugin.version>0.0.8</javafx.plugin.version>
     <!-- The static JavaFX libraries for the native exe must come from the same
          commit as the JavaFX jars, and none exist for 27.0.1 yet. See ADR 2. -->
-    <javafx.version>27</javafx.version>
+    <javafx.version>27.0.1</javafx.version>
     <javafx.builder.version>27.0.0</javafx.builder.version>
     <maven.compiler.release>25</maven.compiler.release>
     <main.class>com.sosuisha.main.Launcher</main.class>
     <jspecify.version>1.0.1</jspecify.version>
     <atlantafx.version>3.0.0</atlantafx.version>
-    <errorprone.version>2.51.0</errorprone.version>
+    <errorprone.version>2.52.0</errorprone.version>
     <nullaway.version>0.14.3</nullaway.version>
     <junit.version>6.1.3</junit.version>
     <!-- Tests tagged "desktop" change the real wallpaper. Run them with -Pdesktop. -->
