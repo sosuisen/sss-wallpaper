@@ -95,7 +95,7 @@ public class ComposingWallpaperChanger implements WallpaperChanger {
                 monitor -> Optional.ofNullable(settings.get(monitor.id()))
                     .flatMap(
                         setting -> setting.folder()
-                            .flatMap(imagePicker::pick)
+                            .flatMap(folder -> imagePicker.pick(folder, setting.image()))
                             .map(image -> new Pick(monitor, image, setting))
                     )
                     .stream()
