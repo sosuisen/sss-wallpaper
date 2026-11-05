@@ -118,8 +118,19 @@ public class FitImageComposer implements ImageComposer {
         try (var files = Files.list(outputFolder)) {
             for (var old : files.filter(f -> String.valueOf(f.getFileName()).startsWith(prefix))
                 .toList()) {
-                Files.delete(old);
+                deleteIfPossible(old);
             }
+        }
+    }
+
+    private static void deleteIfPossible(Path old) {
+        try {
+            Files.delete(old);
+        } catch (IOException _) {
+            // Another process may hold the file. For example, a suspended Windows
+            // Settings process holds it until it ends, so a retry does not help.
+            // A left file does not affect the new wallpaper, and a later compose
+            // deletes it because it still has the prefix of the monitor.
         }
     }
 }
